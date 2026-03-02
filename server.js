@@ -28,15 +28,34 @@ const poolConfig = {
 };
 
 // Add SSL configuration for TiDB or other cloud databases
-if (process.env.DB_SSL === 'true') {
+// Auto-enable SSL for TiDB (port 4000) or when DB_SSL=true
+const isTiDB = poolConfig.port === 4000;
+const enableSSL = process.env.DB_SSL === 'true' || isTiDB;
+
+if (enableSSL) {
   poolConfig.ssl = {
+    minVersion: 'TLSv1.2',
     rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
   };
-  // If a specific CA certificate path is provided, use it
+  
+  // Try to load CA certificate if path is provided
   if (process.env.DB_SSL_CA) {
-    const fs = require('fs');
-    poolConfig.ssl.ca = fs.readFileSync(process.env.DB_SSL_CA, 'utf8');
+    try {
+      const fs = require('fs');
+      if (fs.existsSync(process.env.DB_SSL_CA)) {
+        poolConfig.ssl.ca = fs.readFileSync(process.env.DB_SSL_CA, 'utf8');
+        console.log('[DB] Using custom CA certificate:', process.env.DB_SSL_CA);
+      } else {
+        console.warn('[DB] CA certificate not found at:', process.env.DB_SSL_CA, '- using system certs');
+      }
+    } catch (err) {
+      console.warn('[DB] Failed to load CA certificate:', err.message, '- using system certs');
+    }
   }
+  
+  console.log(`[DB] SSL/TLS enabled (TiDB: ${isTiDB})`);
+} else {
+  console.log('[DB] Connecting without SSL');
 }
 
 const pool = mysql.createPool(poolConfig);

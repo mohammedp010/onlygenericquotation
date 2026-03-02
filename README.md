@@ -160,16 +160,21 @@ DB_PORT=4000
 DB_USER=your_tidb_username
 DB_PASSWORD=your_tidb_password
 DB_NAME=onlygeneric
-DB_SSL=true
-DB_SSL_CA=/etc/ssl/certs/ca-certificates.crt
-DB_SSL_REJECT_UNAUTHORIZED=true
 PORT=8080
 JWT_SECRET=your_random_jwt_secret_here
 ```
 
-**2. CA Certificate Location**
+**Note:** SSL is automatically enabled when `DB_PORT=4000` (TiDB default). You don't need to set `DB_SSL=true` explicitly.
 
-Render's Linux containers include standard CA certificates at `/etc/ssl/certs/ca-certificates.crt` by default. No need to upload it separately.
+**2. CA Certificate (Optional)**
+
+The app will use system CA certificates by default. If TiDB requires a custom CA certificate:
+
+```
+DB_SSL_CA=/etc/ssl/certs/ca-certificates.crt
+```
+
+Render's Linux containers include standard CA certificates at this path by default.
 
 If TiDB provides a custom CA certificate:
 - Download the `.pem` file from TiDB Cloud
@@ -202,9 +207,9 @@ DB_PORT=4000
 DB_USER=your_username
 DB_PASSWORD=your_password
 DB_NAME=onlygeneric
-DB_SSL=true
-DB_SSL_CA=/etc/ssl/certs/ca-certificates.crt
 ```
+
+SSL will be automatically enabled when using port 4000.
 
 ---
 
