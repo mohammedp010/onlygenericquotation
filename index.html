@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OnlyGeneric — Quotation Generator</title>
+
+  <!-- jsPDF + AutoTable (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:      #1a6faf;
+      --blue-dk:   #145a90;
+      --blue-lt:   #e8f4fd;
+      --teal:      #00acc1;
+      --teal-lt:   #e0f7fa;
+      --green:     #2e7d32;
+      --green-lt:  #e8f5e9;
+      --red:       #c62828;
+      --text:      #1e2d3d;
+      --text-mute: #637282;
+      --border:    #d0dde8;
+      --bg:        #f0f4f8;
+      --white:     #ffffff;
+      --shadow:    0 4px 20px rgba(26,111,175,.12);
+      --radius:    10px;
+      --font:      'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+
+    /* ═══════════════════════════════════════════════════════
+       VIEWS — login / app
+    ═══════════════════════════════════════════════════════ */
+    .view { display: none; min-height: 100vh; }
+    .view.active { display: flex; }
+
+    /* ═══════════════════════════════════════════════════════
+       LOGIN VIEW
+    ═══════════════════════════════════════════════════════ */
+    #login-view {
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #1a6faf 0%, #00acc1 100%);
+    }
+
+    .login-card {
+      background: var(--white);
+      border-radius: 18px;
+      box-shadow: 0 12px 48px rgba(0,0,0,.18);
+      padding: 48px 40px 40px;
+      width: 100%;
+      max-width: 420px;
+      animation: fadeUp .45s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(28px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .login-logo .logo-img {
+      max-width: 200px;
+      height: auto;
+      margin-bottom: 8px;
+    }
+    .login-logo .brand-tag {
+      font-size: .82rem;
+      color: var(--text-mute);
+      letter-spacing: .5px;
+      margin-top: 2px;
+    }
+    .login-logo .rx-badge {
+      display: inline-block;
+      background: var(--blue-lt);
+      color: var(--blue);
+      border-radius: 6px;
+      padding: 2px 10px;
+      font-size: .78rem;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text-mute);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: .96rem;
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+      background: var(--white);
+    }
+    .form-group input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26,111,175,.13);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(90deg, var(--blue), var(--teal));
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 8px;
+      letter-spacing: .3px;
+      transition: opacity .2s, transform .15s;
+    }
+    .btn-login:hover  { opacity: .92; }
+    .btn-login:active { transform: scale(.98); }
+
+    .login-error {
+      background: #ffebee;
+      color: var(--red);
+      border-radius: 7px;
+      padding: 10px 14px;
+      font-size: .88rem;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .login-error.show { display: block; }
+
+    /* ═══════════════════════════════════════════════════════
+       APP VIEW
+    ═══════════════════════════════════════════════════════ */
+    #app-view {
+      flex-direction: column;
+      animation: fadeIn .35s ease both;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* HEADER */
+    .app-header {
+      background: linear-gradient(90deg, var(--blue-dk) 0%, var(--blue) 60%, var(--teal) 100%);
+      color: #fff;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.18);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .app-header .hdr-left { display: flex; align-items: center; gap: 12px; }
+    .app-header .hdr-left .hdr-logo { height: 38px; width: auto; }
+    .app-header .hdr-left .hdr-text .brand { font-size: 1.5rem; font-weight: 800; letter-spacing: -.5px; }
+    .app-header .hdr-left .hdr-text .tagline { font-size: .78rem; opacity: .82; letter-spacing: .4px; }
+    .btn-logout {
+      background: rgba(255,255,255,.15);
+      border: 1.5px solid rgba(255,255,255,.5);
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,.28); }
+
+    /* MAIN CONTENT */
+    .app-content {
+      flex: 1;
+      padding: 28px 24px 48px;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* SECTION CARD */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--blue);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1.5px;
+      background: var(--blue-lt);
+    }
+
+    /* CUSTOMER INFO GRID */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .field-wrap label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--text-mute);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 5px;
+    }
+    .field-wrap label .req { color: var(--red); margin-left: 2px; }
+    .field-wrap input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-size: .95rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      background: var(--white);
+    }
+    .field-wrap input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26,111,175,.1);
+    }
+    .field-wrap input.invalid {
+      border-color: var(--red);
+    }
+
+    /* TABLE WRAPPER */
+    .table-wrapper { overflow-x: auto; }
+
+    table.med-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 780px;
+    }
+    /* All thead cells baseline */
+    table.med-table thead th {
+      padding: 9px 12px;
+      font-size: .76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      white-space: nowrap;
+      text-align: left;
+      color: #fff;
+    }
+    /* ── Group header row ─────────────────────── */
+    .th-sno {
+      background: var(--blue-dk);
+      text-align: center;
+      vertical-align: middle;
+      width: 42px;
+      border-radius: 8px 0 0 0;
+      border-right: 1px solid rgba(255,255,255,.25);
+    }
+    .th-grp { text-align: center; letter-spacing: 1px; font-size: .72rem; padding: 7px 10px; }
+    .th-prescribed { background: var(--blue);   border-right: 3px solid rgba(255,255,255,.35); }
+    .th-generic    { background: var(--green);  border-right: 3px solid rgba(255,255,255,.35); }
+    .th-savings    { background: #1b5e20; text-align: center; vertical-align: middle; }
+    .th-action     { background: #546e7a; text-align: center; vertical-align: middle;
+                     border-radius: 0 8px 0 0; width: 52px; }
+    /* ── Sub-header row ──────────────────────── */
+    .th-sub-row th {
+      background: #dceefb;
+      color: var(--blue-dk);
+      font-size: .74rem;
+      padding: 6px 12px;
+      border-top: 1px solid rgba(26,111,175,.2);
+      font-weight: 700;
+    }
+    .th-sub-row .sub-generic { background: #d6f0de; color: var(--green); }
+    /* Group dividers in body */
+    table.med-table td:nth-child(3) { border-right: 2px solid rgba(26,111,175,.18); }
+    table.med-table td:nth-child(5) { border-right: 2px solid rgba(46,125,50,.18); }
+
+    table.med-table tbody tr { transition: background .15s; }
+    table.med-table tbody tr:nth-child(even) { background: var(--blue-lt); }
+    table.med-table tbody tr:nth-child(odd)  { background: var(--white); }
+    table.med-table tbody tr:hover { background: #daeeff; }
+
+    table.med-table td {
+      padding: 8px 10px;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border);
+    }
+    table.med-table td.num-cell { text-align: center; font-size: .82rem; color: var(--text-mute); }
+    table.med-table td.action-cell { text-align: center; }
+
+    /* inputs inside table */
+    .tc-input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: .9rem;
+      color: var(--text);
+      outline: none;
+      background: var(--white);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .tc-input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(0,172,193,.12);
+    }
+    .tc-input.price-input { text-align: right; }
+    /* Generic price input in green */
+    .generic-price {
+      color: var(--green) !important;
+      font-weight: 700 !important;
+      border-color: rgba(46,125,50,.35) !important;
+    }
+    .generic-price:focus { box-shadow: 0 0 0 3px rgba(46,125,50,.15) !important; border-color: var(--green) !important; }
+
+    .savings-badge {
+      display: inline-block;
+      background: var(--green-lt);
+      color: var(--green);
+      font-size: .85rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      min-width: 70px;
+      text-align: right;
+    }
+
+    /* delete row button */
+    .btn-del-row {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #e53935;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 4px 6px;
+      border-radius: 5px;
+      transition: background .15s;
+    }
+    .btn-del-row:hover { background: #ffebee; }
+
+    /* add row button */
+    .btn-add-row {
+      margin-top: 14px;
+      background: var(--teal-lt);
+      color: var(--teal);
+      border: 1.5px dashed var(--teal);
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-add-row:hover { background: #b2ebf2; }
+
+    /* AUTOCOMPLETE DROPDOWN */
+    .autocomplete-wrap {
+      position: relative;
+    }
+    .ac-dropdown {
+      position: fixed;          /* fixed so table overflow-x:auto won't clip it */
+      background: var(--white);
+      border: 1.5px solid var(--blue);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.14);
+      z-index: 9999;
+      max-height: 220px;
+      overflow-y: auto;
+      display: none;
+    }
+    .ac-dropdown.open { display: block; }
+    .ac-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background .12s;
+    }
+    .ac-item:hover, .ac-item.focused { background: var(--blue-lt); }
+    .ac-item:not(:last-child) { border-bottom: 1px solid var(--border); }
+    .ac-item .ac-generic { font-size: .92rem; font-weight: 600; color: var(--text); }
+    .ac-item .ac-price   { font-size: .78rem; color: var(--teal); font-weight: 600; }
+
+    /* SUMMARY BAR */
+    .summary-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+    }
+    .sum-tile {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      text-align: center;
+    }
+    .sum-tile .sum-label {
+      font-size: .73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--text-mute);
+      margin-bottom: 6px;
+    }
+    .sum-tile .sum-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--blue);
+    }
+    .sum-tile.savings-tile {
+      border-color: var(--green);
+      background: var(--green-lt);
+    }
+    .sum-tile.savings-tile .sum-value { color: var(--green); }
+
+    .savings-pct-badge {
+      display: inline-block;
+      background: var(--green);
+      color: #fff;
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: .88rem;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+
+    /* GENERATE BUTTON */
+    .btn-generate {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 16px 28px;
+      background: linear-gradient(90deg, var(--blue), var(--teal));
+      color: #fff;
+      font-size: 1.08rem;
+      font-weight: 800;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      letter-spacing: .3px;
+      box-shadow: 0 4px 18px rgba(26,111,175,.3);
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+    }
+    .btn-generate:hover  { opacity: .9; box-shadow: 0 6px 24px rgba(26,111,175,.4); }
+    .btn-generate:active { transform: scale(.98); }
+    .btn-generate:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--text);
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: .9rem;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .3s, transform .3s;
+      z-index: 9999;
+      pointer-events: none;
+      max-width: 340px;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: var(--green); }
+    .toast.error   { background: var(--red); }
+
+    /* ═══ RESPONSIVE ═════════════════════════════════════════ */
+    @media (max-width: 640px) {
+      .app-content { padding: 16px 12px 40px; }
+      .card { padding: 18px 14px; }
+      .app-header { padding: 12px 16px; }
+      .app-header .hdr-left .hdr-logo { height: 30px; }
+      .app-header .hdr-left .hdr-text .brand { font-size: 1.2rem; }
+      .btn-logout { padding: 7px 14px; font-size: .8rem; }
+      .login-card { padding: 36px 22px 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     VIEW 1: LOGIN
+══════════════════════════════════════════════════════════ -->
+<div id="login-view" class="view active">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="assets/onlygeneric.webp" alt="OnlyGeneric" class="logo-img" />
+      <div class="brand-tag">QUOTATION GENERATOR</div>
+      <div class="rx-badge">&#8478; Genuine Generics, Genuine Savings</div>
+    </div>
+
+    <div id="login-error" class="login-error"></div>
+
+    <div class="form-group">
+      <label for="l-username">Username</label>
+      <input type="text" id="l-username" placeholder="Enter username" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label for="l-password">Password</label>
+      <input type="password" id="l-password" placeholder="Enter password" autocomplete="current-password" />
+    </div>
+    <button class="btn-login" id="btn-login">Login &rarr;</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     VIEW 2: APP
+══════════════════════════════════════════════════════════ -->
+<div id="app-view" class="view">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="hdr-left">
+      <img src="assets/onlygeneric.webp" alt="OnlyGeneric" class="hdr-logo" />
+      <div class="hdr-text">
+        <div class="brand">OnlyGeneric</div>
+        <div class="tagline">Genuine Generics, Genuine Savings</div>
+      </div>
+    </div>
+    <button class="btn-logout" id="btn-logout">Logout</button>
+  </header>
+
+  <main class="app-content">
+
+    <!-- ── Customer Info ─────────────────────────── -->
+    <div class="card">
+      <div class="card-title">Customer Information</div>
+      <div class="info-grid">
+        <div class="field-wrap">
+          <label>Mobile Number <span class="req">*</span></label>
+          <div class="autocomplete-wrap">
+            <input type="tel" id="f-mobile" placeholder="10-digit mobile" maxlength="10" inputmode="numeric" />
+            <div class="ac-dropdown" id="mobile-ac-drop"></div>
+          </div>
+        </div>
+        <div class="field-wrap">
+          <label>Customer Name <span class="req">*</span></label>
+          <input type="text" id="f-customer" placeholder="Required" />
+        </div>
+        <div class="field-wrap">
+          <label>Doctor Name</label>
+          <input type="text" id="f-doctor" placeholder="Optional" />
+        </div>
+        <div class="field-wrap">
+          <label>Date</label>
+          <input type="date" id="f-date" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Medicine Table ────────────────────────── -->
+    <div class="card">
+      <div class="card-title">Prescribed vs Generic Medicine</div>
+      <div class="table-wrapper">
+        <table class="med-table" id="med-table">
+          <thead>
+            <tr class="th-group-row">
+              <th rowspan="2" class="th-sno">#</th>
+              <th colspan="2" class="th-grp th-prescribed">&#128138; Prescribed</th>
+              <th colspan="2" class="th-grp th-generic">&#9989; Generic</th>
+              <th rowspan="2" class="th-grp th-savings">Savings (&#8377;)</th>
+              <th rowspan="2" class="th-grp th-action">Action</th>
+            </tr>
+            <tr class="th-sub-row">
+              <th>Medicine Name</th>
+              <th>Price (&#8377;)</th>
+              <th class="sub-generic">Medicine Name</th>
+              <th class="sub-generic">Price (&#8377;)</th>
+            </tr>
+          </thead>
+          <tbody id="med-tbody">
+            <!-- rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+      <button class="btn-add-row" id="btn-add-row">+ Add Row</button>
+    </div>
+
+    <!-- ── Summary Bar ───────────────────────────── -->
+    <div class="summary-bar" style="margin-bottom:24px;">
+      <div class="sum-tile">
+        <div class="sum-label">Total Prescribed (₹)</div>
+        <div class="sum-value" id="sum-prescribed">₹0.00</div>
+      </div>
+      <div class="sum-tile">
+        <div class="sum-label">Total Generic (₹)</div>
+        <div class="sum-value" id="sum-generic">₹0.00</div>
+      </div>
+      <div class="sum-tile savings-tile">
+        <div class="sum-label">Total Savings (₹)</div>
+        <div class="sum-value" id="sum-savings">₹0.00</div>
+        <div id="sum-pct-wrap" style="display:none">
+          <span class="savings-pct-badge" id="sum-pct"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Generate PDF ──────────────────────────── -->
+    <button class="btn-generate" id="btn-generate">
+      📄 Generate Quotation (PDF)
+    </button>
+
+  </main>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─── State ──────────────────────────────────────────────── */
+let authToken = null;
+let rowCounter = 0;
+const DEBOUNCE_MS = 280;
+
+/* ─── DOM helpers ────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const fmt = n => '₹' + Number(n || 0).toFixed(2);
+
+/* ─── Toast ──────────────────────────────────────────────── */
+function showToast(msg, type = '') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3400);
+}
+
+/* ─── Views ──────────────────────────────────────────────── */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  $(name + '-view').classList.add('active');
+}
+
+/* ─── API ────────────────────────────────────────────────── */
+async function api(method, url, body) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (authToken) opts.headers['Authorization'] = 'Bearer ' + authToken;
+  if (body)       opts.body = JSON.stringify(body);
+
+  const res  = await fetch(url, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+/* ─────────────────────────────────────────────────────────
+   LOGIN
+───────────────────────────────────────────────────────── */
+$('btn-login').addEventListener('click', handleLogin);
+$('l-password').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
+async function handleLogin() {
+  const username = $('l-username').value.trim();
+  const password = $('l-password').value;
+  const errEl    = $('login-error');
+
+  errEl.classList.remove('show');
+
+  if (!username || !password) {
+    errEl.textContent = 'Please enter both username and password.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  const btn = $('btn-login');
+  btn.disabled = true;
+  btn.textContent = 'Logging in…';
+
+  try {
+    const data = await api('POST', '/api/login', { username, password });
+    authToken = data.token;
+    sessionStorage.setItem('og_token', authToken);
+    initApp();
+    showView('app');
+  } catch (err) {
+    errEl.textContent = err.message || 'Login failed. Please try again.';
+    errEl.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Login →';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   LOGOUT
+───────────────────────────────────────────────────────── */
+$('btn-logout').addEventListener('click', () => {
+  authToken = null;
+  sessionStorage.removeItem('og_token');
+  $('l-username').value = '';
+  $('l-password').value = '';
+  $('login-error').classList.remove('show');
+  showView('login');
+});
+
+/* ─────────────────────────────────────────────────────────
+   RESTORE SESSION ON PAGE LOAD
+───────────────────────────────────────────────────────── */
+(function restoreSession() {
+  const saved = sessionStorage.getItem('og_token');
+  if (saved) {
+    authToken = saved;
+    initApp();
+    showView('app');
+  }
+})();
+
+/* ─────────────────────────────────────────────────────────
+   APP INIT
+───────────────────────────────────────────────────────── */
+function initApp() {
+  $('f-date').value = new Date().toISOString().split('T')[0];
+  $('med-tbody').innerHTML = '';
+  rowCounter = 0;
+  addRow();
+  updateSummary();
+  initMobileAutocomplete();
+}
+
+/* ─────────────────────────────────────────────────────────
+   MOBILE AUTOCOMPLETE (Customer lookup)
+───────────────────────────────────────────────────────── */
+function initMobileAutocomplete() {
+  const mobileInput = $('f-mobile');
+  const dropdown    = $('mobile-ac-drop');
+  if (!mobileInput || !dropdown || mobileInput._custAcInit) return;
+  mobileInput._custAcInit = true;
+
+  let debTimer = null;
+  let customers = [];
+  let focIdx    = -1;
+
+  mobileInput.addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 10);
+    this.classList.remove('invalid');
+    clearTimeout(debTimer);
+    if (this.value.length >= 3) {
+      const q = this.value;
+      debTimer = setTimeout(() => fetchCustomers(q), DEBOUNCE_MS);
+    } else {
+      closeCustDropdown();
+    }
+  });
+
+  mobileInput.addEventListener('keydown', e => {
+    if (!dropdown.classList.contains('open')) return;
+    if      (e.key === 'ArrowDown') { e.preventDefault(); moveCustFocus(1); }
+    else if (e.key === 'ArrowUp')   { e.preventDefault(); moveCustFocus(-1); }
+    else if (e.key === 'Enter')     { e.preventDefault(); selectCustFocused(); }
+    else if (e.key === 'Escape')    { closeCustDropdown(); }
+  });
+
+  mobileInput.addEventListener('blur', () => setTimeout(closeCustDropdown, 160));
+
+  async function fetchCustomers(q) {
+    try {
+      const results = await api('GET', `/api/customers?q=${encodeURIComponent(q)}`);
+      customers = results;
+      renderCustDropdown(results);
+    } catch { /* silent */ }
+  }
+
+  function posCustDropdown() {
+    const rect = mobileInput.getBoundingClientRect();
+    dropdown.style.left  = rect.left  + 'px';
+    dropdown.style.top   = (rect.bottom + 3) + 'px';
+    dropdown.style.width = rect.width + 'px';
+  }
+
+  function renderCustDropdown(items) {
+    dropdown.innerHTML = '';
+    focIdx = -1;
+    if (!items.length) { closeCustDropdown(); return; }
+    items.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'ac-item';
+      div.innerHTML = `
+        <span class="ac-generic">${escHtml(item.mobile)}</span>
+        <span class="ac-price">${escHtml(item.customer_name || '')}</span>`;
+      div.addEventListener('mousedown', e => { e.preventDefault(); selectCust(i); });
+      dropdown.appendChild(div);
+    });
+    posCustDropdown();
+    dropdown.classList.add('open');
+  }
+
+  function moveCustFocus(dir) {
+    const els = dropdown.querySelectorAll('.ac-item');
+    if (!els.length) return;
+    if (focIdx >= 0) els[focIdx].classList.remove('focused');
+    focIdx = Math.max(0, Math.min(els.length - 1, focIdx + dir));
+    els[focIdx].classList.add('focused');
+    els[focIdx].scrollIntoView({ block: 'nearest' });
+  }
+
+  function selectCustFocused() {
+    if (focIdx >= 0) selectCust(focIdx); else closeCustDropdown();
+  }
+
+  function selectCust(i) {
+    const c = customers[i];
+    if (!c) return;
+    mobileInput.value = c.mobile;
+    const cf = $('f-customer');
+    if (cf && c.customer_name) { cf.value = c.customer_name; cf.classList.remove('invalid'); }
+    closeCustDropdown();
+  }
+
+  function closeCustDropdown() {
+    dropdown.classList.remove('open');
+    dropdown.innerHTML = '';
+    customers = [];
+    focIdx    = -1;
+  }
+
+  mobileInput._custRepos = () => { if (dropdown.classList.contains('open')) posCustDropdown(); };
+  window.addEventListener('scroll', mobileInput._custRepos, true);
+  window.addEventListener('resize', mobileInput._custRepos);
+}
+
+/* ─────────────────────────────────────────────────────────
+   MEDICINE TABLE — ROW MANAGEMENT
+───────────────────────────────────────────────────────── */
+$('btn-add-row').addEventListener('click', addRow);
+
+function addRow() {
+  rowCounter++;
+  const idx  = rowCounter;
+  const tbody = $('med-tbody');
+
+  const tr = document.createElement('tr');
+  tr.dataset.rowId = idx;
+  tr.innerHTML = `
+    <td class="num-cell">${tbody.children.length + 1}</td>
+    <td>
+      <div class="autocomplete-wrap">
+        <input class="tc-input prescribed-input"
+               type="text"
+               placeholder="e.g. Crocin 500mg"
+               data-row="${idx}" />
+        <div class="ac-dropdown" id="ac-drop-${idx}"></div>
+      </div>
+    </td>
+    <td><input class="tc-input price-input prescribed-price" type="number" min="0" step="0.01"
+               placeholder="0.00" data-row="${idx}" /></td>
+    <td><input class="tc-input generic-input" type="text"
+               placeholder="e.g. Paracetamol 500mg" data-row="${idx}" /></td>
+    <td><input class="tc-input price-input generic-price" type="number" min="0" step="0.01"
+               placeholder="0.00" data-row="${idx}" /></td>
+    <td><span class="savings-badge" id="savings-${idx}">₹0.00</span></td>
+    <td class="action-cell">
+      <button class="btn-del-row" title="Remove row" data-row="${idx}">&#128465;</button>
+    </td>`;
+
+  tbody.appendChild(tr);
+  renumberRows();
+  bindRowEvents(tr, idx);
+}
+
+function deleteRow(rowId) {
+  const tr = document.querySelector(`tr[data-row-id="${rowId}"]`);
+  if (tr) tr.remove();
+  renumberRows();
+  updateSummary();
+}
+
+function renumberRows() {
+  document.querySelectorAll('#med-tbody tr').forEach((tr, i) => {
+    tr.querySelector('.num-cell').textContent = i + 1;
+  });
+}
+
+/* ─────────────────────────────────────────────────────────
+   ROW EVENTS — SAVINGS + AUTOCOMPLETE
+───────────────────────────────────────────────────────── */
+function bindRowEvents(tr, idx) {
+  const prescribedInput = tr.querySelector('.prescribed-input');
+  const prescribedPrice = tr.querySelector('.prescribed-price');
+  const genericInput    = tr.querySelector('.generic-input');
+  const genericPrice    = tr.querySelector('.generic-price');
+  const delBtn          = tr.querySelector('.btn-del-row');
+  const dropdown        = $(`ac-drop-${idx}`);
+
+  // Savings update on price change
+  prescribedPrice.addEventListener('input', () => {
+    updateRowSavings(idx);
+    updateSummary();
+  });
+  genericPrice.addEventListener('input', () => {
+    updateRowSavings(idx);
+    updateSummary();
+  });
+
+  // Delete row — also clean up window listeners added by this row
+  delBtn.addEventListener('click', () => {
+    window.removeEventListener('scroll', prescribedInput._reposition, true);
+    window.removeEventListener('resize', prescribedInput._reposition);
+    deleteRow(idx);
+  });
+
+  // ── Autocomplete ──────────────────────────────────────
+  let debounceTimer = null;
+  let acItems       = [];
+  let focusedIdx    = -1;
+
+  prescribedInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => fetchSuggestions(prescribedInput.value), DEBOUNCE_MS);
+  });
+
+  prescribedInput.addEventListener('keydown', e => {
+    if (!dropdown.classList.contains('open')) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); moveFocus(1); }
+    else if (e.key === 'ArrowUp')   { e.preventDefault(); moveFocus(-1); }
+    else if (e.key === 'Enter')     { e.preventDefault(); selectFocused(); }
+    else if (e.key === 'Escape')    { closeDropdown(); }
+  });
+
+  prescribedInput.addEventListener('blur', () => {
+    // small delay so click events on dropdown items fire first
+    setTimeout(closeDropdown, 160);
+  });
+
+  async function fetchSuggestions(q) {
+    const trimmed = q.trim();
+    if (!trimmed) { closeDropdown(); return; }
+    try {
+      const results = await api('GET', `/api/suggestions?q=${encodeURIComponent(trimmed)}`);
+      acItems = results;
+      renderDropdown(results);
+    } catch { /* silently ignore */ }
+  }
+
+  function positionDropdown() {
+    const rect = prescribedInput.getBoundingClientRect();
+    dropdown.style.left  = rect.left + 'px';
+    dropdown.style.top   = (rect.bottom + 3) + 'px';
+    dropdown.style.width = rect.width + 'px';
+  }
+
+  function renderDropdown(items) {
+    dropdown.innerHTML = '';
+    focusedIdx = -1;
+
+    if (!items.length) { closeDropdown(); return; }
+
+    items.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'ac-item';
+      div.dataset.idx = i;
+      div.innerHTML = `
+        <span class="ac-generic">${escHtml(item.generic_name)}</span>
+        <span class="ac-price">
+          Prescribed: ₹${Number(item.prescribed_price||0).toFixed(2)}
+          &nbsp;&rarr;&nbsp;
+          Generic: ₹${Number(item.generic_price).toFixed(2)}
+          &nbsp;&middot;&nbsp; <em>${escHtml(item.prescribed_name)}</em>
+        </span>`;
+      div.addEventListener('mousedown', e => { e.preventDefault(); selectItem(i); });
+      dropdown.appendChild(div);
+    });
+
+    positionDropdown();
+    dropdown.classList.add('open');
+  }
+
+  // Keep dropdown aligned when user scrolls or resizes
+  prescribedInput._reposition = () => { if (dropdown.classList.contains('open')) positionDropdown(); };
+  window.addEventListener('scroll', prescribedInput._reposition, true);
+  window.addEventListener('resize', prescribedInput._reposition);
+
+  function moveFocus(dir) {
+    const els = dropdown.querySelectorAll('.ac-item');
+    if (!els.length) return;
+    if (focusedIdx >= 0) els[focusedIdx].classList.remove('focused');
+    focusedIdx = Math.max(0, Math.min(els.length - 1, focusedIdx + dir));
+    els[focusedIdx].classList.add('focused');
+    els[focusedIdx].scrollIntoView({ block: 'nearest' });
+  }
+
+  function selectFocused() {
+    if (focusedIdx >= 0) selectItem(focusedIdx);
+    else closeDropdown();
+  }
+
+  function selectItem(i) {
+    const item = acItems[i];
+    if (!item) return;
+    prescribedInput.value = item.prescribed_name;
+    genericInput.value    = item.generic_name;
+    genericPrice.value    = Number(item.generic_price).toFixed(2);
+    closeDropdown();
+    prescribedPrice.focus();
+    updateRowSavings(idx);
+    updateSummary();
+  }
+
+  function closeDropdown() {
+    dropdown.classList.remove('open');
+    dropdown.innerHTML = '';
+    acItems    = [];
+    focusedIdx = -1;
+  }
+}
+
+function updateRowSavings(idx) {
+  const row   = document.querySelector(`tr[data-row-id="${idx}"]`);
+  if (!row) return;
+  const pp    = parseFloat(row.querySelector('.prescribed-price').value) || 0;
+  const gp    = parseFloat(row.querySelector('.generic-price').value)    || 0;
+  const saved = Math.max(0, pp - gp);
+  const el    = $(`savings-${idx}`);
+  if (el) el.textContent = '₹' + saved.toFixed(2);
+}
+
+/* ─────────────────────────────────────────────────────────
+   SUMMARY BAR
+───────────────────────────────────────────────────────── */
+function updateSummary() {
+  let totalP = 0, totalG = 0;
+
+  document.querySelectorAll('#med-tbody tr').forEach(tr => {
+    const pp = parseFloat(tr.querySelector('.prescribed-price').value) || 0;
+    const gp = parseFloat(tr.querySelector('.generic-price').value)    || 0;
+    totalP += pp;
+    totalG += gp;
+    const rowId = tr.dataset.rowId;
+    updateRowSavings(rowId);
+  });
+
+  const saved = Math.max(0, totalP - totalG);
+  const pct   = totalP > 0 ? (saved / totalP * 100) : 0;
+
+  $('sum-prescribed').textContent = fmt(totalP);
+  $('sum-generic').textContent    = fmt(totalG);
+  $('sum-savings').textContent    = fmt(saved);
+
+  const pctWrap = $('sum-pct-wrap');
+  if (pct > 0) {
+    $('sum-pct').textContent = `You save ${pct.toFixed(1)}%!`;
+    pctWrap.style.display = 'block';
+  } else {
+    pctWrap.style.display = 'none';
+  }
+}
+
+function resetForm() {
+  $('f-mobile').value = '';
+  $('f-customer').value = '';
+  $('f-doctor').value = '';
+  $('f-date').value = new Date().toISOString().split('T')[0];
+  $('med-tbody').innerHTML = '';
+  rowIdCounter = 1;
+  addRow();
+  updateSummary();
+}
+
+/* ─────────────────────────────────────────────────────────
+   GENERATE QUOTATION
+───────────────────────────────────────────────────────── */
+$('btn-generate').addEventListener('click', handleGenerate);
+
+async function handleGenerate() {
+  // ── 1. Validate ──────────────────────────────────────
+  const mobile = $('f-mobile').value.trim();
+  if (!/^\d{10}$/.test(mobile)) {
+    $('f-mobile').classList.add('invalid');
+    $('f-mobile').focus();
+    showToast('Please enter a valid 10-digit mobile number.', 'error');
+    return;
+  }
+  $('f-mobile').classList.remove('invalid');
+
+  const customerName = $('f-customer').value.trim();
+  if (!customerName) {
+    $('f-customer').classList.add('invalid');
+    $('f-customer').focus();
+    showToast('Please enter the Customer Name.', 'error');
+    return;
+  }
+  $('f-customer').classList.remove('invalid');
+
+  const rows = collectRows();
+  if (!rows.length) {
+    showToast('Please add at least one medicine row.', 'error');
+    return;
+  }
+
+  const btn = $('btn-generate');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating…';
+
+  try {
+    // ── 2. Save mappings + customer ──────────────────
+    const mappings = rows
+      .filter(r => r.prescribedName && r.genericName)
+      .map(r => ({
+        prescribed_name:  r.prescribedName,
+        generic_name:     r.genericName,
+        prescribed_price: r.prescribedPrice,
+        generic_price:    r.genericPrice,
+      }));
+
+    await api('POST', '/api/mappings', {
+      mappings,
+      customer: { mobile, customer_name: customerName },
+    });
+
+    // ── 3. Get quotation number ───────────────────────
+    const { number: quotationNumber } = await api('GET', '/api/quotation-number');
+
+    // ── 4. Generate PDF ───────────────────────────────
+    await generatePDF({
+      mobile,
+      customerName,
+      doctorName: $('f-doctor').value.trim(),
+      date:       $('f-date').value,
+      quotationNumber,
+      rows,
+    });
+
+    showToast('Quotation saved & PDF downloaded!', 'success');
+    resetForm();
+  } catch (err) {
+    console.error(err);
+    showToast('Error: ' + (err.message || 'Something went wrong.'), 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📄 Generate Quotation (PDF)';
+  }
+}
+
+function collectRows() {
+  const result = [];
+  document.querySelectorAll('#med-tbody tr').forEach(tr => {
+    const pName  = tr.querySelector('.prescribed-input').value.trim();
+    const pPrice = parseFloat(tr.querySelector('.prescribed-price').value) || 0;
+    const gName  = tr.querySelector('.generic-input').value.trim();
+    const gPrice = parseFloat(tr.querySelector('.generic-price').value) || 0;
+    if (pName || gName) {
+      result.push({ prescribedName: pName, prescribedPrice: pPrice,
+                    genericName: gName, genericPrice: gPrice });
+    }
+  });
+  return result;
+}
+
+/* ─────────────────────────────────────────────────────────
+   PDF GENERATION (jsPDF + AutoTable)
+───────────────────────────────────────────────────────── */
+
+// Helper: load an image URL → PNG data URL via canvas
+function loadLogoDataURL(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width  = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        resolve({ dataURL: canvas.toDataURL('image/png'), w: img.naturalWidth, h: img.naturalHeight });
+      } catch { resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+async function generatePDF({ mobile, customerName, doctorName, date, quotationNumber, rows }) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  const MARGIN  = 14;
+  const PW      = 210 - MARGIN * 2;   // 182 mm printable width
+  const BLUE    = [26, 111, 175];
+  const TEAL    = [0, 172, 193];
+  const DKBLUE  = [20, 90, 144];
+  const GREEN   = [46, 125, 50];
+  const WHITE   = [255, 255, 255];
+  const LTBLUE  = [232, 244, 253];
+  const LTGRAY  = [245, 247, 250];
+  const GRAY    = [80, 100, 120];
+
+  // Use Rs. instead of ₹ — jsPDF built-in fonts lack the rupee glyph
+  const RS = 'Rs.';
+
+  let y = MARGIN;
+
+  // ── Header band ──────────────────────────────────────
+  const HDR_H = 32;
+  doc.setFillColor(...DKBLUE);
+  doc.rect(0, 0, 210, HDR_H, 'F');
+
+  // Try to place logo image
+  const logo = await loadLogoDataURL('assets/onlygeneric.webp');
+  let textStartX = MARGIN;
+  if (logo) {
+    const logoH = 22;  // height in mm inside the header
+    const logoW = logoH * (logo.w / logo.h);
+    const logoY = (HDR_H - logoH) / 2;
+    doc.addImage(logo.dataURL, 'PNG', MARGIN, logoY, logoW, logoH);
+    textStartX = MARGIN + logoW + 5;
+  } else {
+    // Fallback text brand
+    doc.setTextColor(...WHITE);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('OnlyGeneric', MARGIN, 14);
+    textStartX = MARGIN;
+  }
+
+  // Tagline below logo (or beside it if no logo)
+  doc.setTextColor(...WHITE);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  if (logo) {
+    // Only show tagline centered under white text area if logo fits left side.
+    // Place tagline under the logo area
+    const logoH = 22;
+    const logoW = logoH * (logo.w / logo.h);
+    doc.text('Genuine Generics, Genuine Savings', MARGIN + logoW / 2, (HDR_H - 22) / 2 + 22 + 4, { align: 'center' });
+  } else {
+    doc.text('Genuine Generics, Genuine Savings', MARGIN, 21);
+  }
+
+  // Shop info (right-aligned)
+  doc.setFontSize(7.5);
+  const shopLines = [
+    'Shop No. 1/2, Narayan Krupa Appartment,',
+    'Bhatar Road, Surat - 395003',
+    'Phone: +91 95377 12330',
+    'Email: support@onlygeneric.in',
+  ];
+  const rightX = 210 - MARGIN;
+  shopLines.forEach((line, i) => {
+    doc.text(line, rightX, 8 + i * 5.8, { align: 'right' });
+  });
+
+  y = HDR_H + 4;
+
+  // ── Quotation title ───────────────────────────────────
+  doc.setFillColor(...LTBLUE);
+  doc.rect(MARGIN, y, PW, 10, 'F');
+  doc.setTextColor(...BLUE);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('QUOTATION BILL', MARGIN + 3, y + 7);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(`Quotation No: ${quotationNumber}`, MARGIN + 3, y + 12.5);
+  y += 18;
+
+  // ── Customer Details Box ──────────────────────────────
+  const detailsStartY = y;
+  doc.setDrawColor(...BLUE);
+  doc.setLineWidth(0.4);
+
+  const fields = [
+    ['Date',          formatDateDisplay(date)],
+    ['Mobile Number', mobile],
+  ];
+  if (customerName) fields.push(['Customer Name', customerName]);
+  if (doctorName)   fields.push(['Doctor Name',   doctorName]);
+
+  const boxH = 6 + fields.length * 7;
+  doc.setFillColor(...LTGRAY);
+  doc.roundedRect(MARGIN, y, PW, boxH, 2, 2, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...GRAY);
+  doc.text('CUSTOMER DETAILS', MARGIN + 4, y + 5.5);
+  y += 10;
+
+  fields.forEach(([label, value]) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...DKBLUE);
+    doc.text(label + ':', MARGIN + 4, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...[30, 45, 61]);
+    doc.text(value || '—', MARGIN + 45, y);
+    y += 7;
+  });
+  y += 4;
+
+  // ── Medicine Table ────────────────────────────────────
+  // Column widths (total = 182mm): #8 + Presc46 + PP30 + Gen44 + GP28 + Sav26
+  let totalP = 0, totalG = 0;
+  const tableBody = rows.map((r, i) => {
+    const savings = Math.max(0, r.prescribedPrice - r.genericPrice);
+    totalP += r.prescribedPrice;
+    totalG += r.genericPrice;
+    return [
+      i + 1,
+      r.prescribedName || '—',
+      r.prescribedPrice > 0 ? RS + r.prescribedPrice.toFixed(2) : '—',
+      r.genericName     || '—',
+      r.genericPrice    > 0 ? RS + r.genericPrice.toFixed(2)    : '—',
+      savings           > 0 ? RS + savings.toFixed(2)           : '—',
+    ];
+  });
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: MARGIN, right: MARGIN },
+    tableWidth: PW,
+    head: [
+      [
+        { content: '#',           rowSpan: 2, styles: { valign: 'middle', halign: 'center', fillColor: DKBLUE } },
+        { content: 'PRESCRIBED',  colSpan: 2, styles: { halign: 'center', fillColor: BLUE } },
+        { content: 'GENERIC',     colSpan: 2, styles: { halign: 'center', fillColor: GREEN } },
+        { content: 'SAVINGS (Rs.)', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [27,94,32] } },
+      ],
+      [
+        { content: 'Medicine',    styles: { fillColor: [200,225,248], textColor: DKBLUE } },
+        { content: 'Price (Rs.)', styles: { halign: 'right', fillColor: [200,225,248], textColor: DKBLUE } },
+        { content: 'Medicine',    styles: { fillColor: [200,235,210], textColor: GREEN } },
+        { content: 'Price (Rs.)', styles: { halign: 'right', fillColor: [200,235,210], textColor: GREEN } },
+      ],
+    ],
+    body: tableBody,
+    styles: {
+      fontSize: 8.5,
+      cellPadding: 3.5,
+      overflow: 'linebreak',
+      textColor: [30, 45, 61],
+      lineColor: [208, 221, 232],
+      lineWidth: 0.3,
+    },
+    headStyles: {
+      textColor: WHITE,
+      fontStyle: 'bold',
+      fontSize: 8,
+    },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 8 },
+      1: { cellWidth: 46 },
+      2: { halign: 'right',  cellWidth: 30 },
+      3: { cellWidth: 44 },
+      4: { halign: 'right',  cellWidth: 28, textColor: GREEN, fontStyle: 'bold' },
+      5: { halign: 'right',  cellWidth: 26, textColor: GREEN, fontStyle: 'bold' },
+    },
+    didParseCell(data) {
+      if (data.section === 'body' && (data.column.index === 4 || data.column.index === 5)) {
+        data.cell.styles.textColor  = GREEN;
+        data.cell.styles.fontStyle  = 'bold';
+      }
+    },
+    alternateRowStyles: { fillColor: LTBLUE },
+    tableLineColor: BLUE,
+    tableLineWidth: 0.3,
+  });
+
+  y = doc.lastAutoTable.finalY + 8;
+
+  // ── Summary Box ────────────────────────────────────────
+  const totalSaved = Math.max(0, totalP - totalG);
+  const pct        = totalP > 0 ? (totalSaved / totalP * 100).toFixed(1) : '0.0';
+
+  const summaryData = [
+    ['Total Prescribed Amount', RS + totalP.toFixed(2)],
+    ['Total Generic Amount',    RS + totalG.toFixed(2)],
+    ['Total Savings',           RS + totalSaved.toFixed(2)],
+    ['Savings Percentage',      pct + '% saved!'],
+  ];
+
+  doc.autoTable({
+    startY: y,
+    margin: { left: MARGIN, right: MARGIN },
+    body: summaryData,
+    theme: 'plain',
+    styles: {
+      fontSize: 9,
+      cellPadding: 3.5,
+    },
+    columnStyles: {
+      0: { fontStyle: 'bold', textColor: GRAY, cellWidth: 80 },
+      1: { halign: 'right',   fontStyle: 'bold', textColor: [30, 45, 61] },
+    },
+    didParseCell(data) {
+      if (data.row.index === 2 || data.row.index === 3) {
+        data.cell.styles.textColor = GREEN;
+        data.cell.styles.fillColor = [232, 245, 233];
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fontSize  = 10;
+      }
+    },
+    didDrawTable(data) {
+      const { table } = data;
+      doc.setDrawColor(...BLUE);
+      doc.setLineWidth(0.4);
+      doc.roundedRect(
+        table.settings.margin.left,
+        table.startY - 1,
+        PW,
+        table.finalY - table.startY + 2,
+        2, 2, 'S'
+      );
+    },
+  });
+
+  y = doc.lastAutoTable.finalY + 14;
+
+  // ── Footer ────────────────────────────────────────────
+  const PAGE_H = 297;
+  const footerY = Math.max(y, PAGE_H - 22);
+
+  doc.setFillColor(...DKBLUE);
+  doc.rect(0, footerY, 210, PAGE_H - footerY, 'F');
+
+  doc.setTextColor(...WHITE);
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(8);
+  doc.text(
+    'All generic medicines are certified and approved. Thank you for choosing OnlyGeneric.',
+    105,
+    footerY + 7,
+    { align: 'center' }
+  );
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.text('OnlyGeneric · support@onlygeneric.in · +91 95377 12330', 105, footerY + 13, { align: 'center' });
+
+  // ── Download ──────────────────────────────────────────
+  const fileName = `${quotationNumber}_${mobile}.pdf`;
+  doc.save(fileName);
+}
+
+/* ─────────────────────────────────────────────────────────
+   UTILITIES
+───────────────────────────────────────────────────────── */
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return '—';
+  const [y, m, d] = dateStr.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d} ${months[parseInt(m,10)-1]} ${y}`;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// Mobile field: only allow digits (autocomplete logic handled in initMobileAutocomplete)
+$('f-mobile').addEventListener('input', function() {
+  this.value = this.value.replace(/\D/g, '').slice(0, 10);
+  this.classList.remove('invalid');
+});
+// Note: customer autocomplete + keydown/blur are registered by initMobileAutocomplete()
+// which is called from initApp() on login/session restore.
+</script>
+</body>
+</html>
