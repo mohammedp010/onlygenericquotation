@@ -144,6 +144,70 @@ onlygenric/
 
 ---
 
+## Deployment (Render + TiDB)
+
+### TiDB Cloud Configuration
+
+TiDB Cloud provides a MySQL-compatible serverless database. Follow these steps:
+
+**1. Set Environment Variables on Render**
+
+In your Render dashboard, add these environment variables:
+
+```
+DB_HOST=gateway01.your-region.prod.aws.tidbcloud.com
+DB_PORT=4000
+DB_USER=your_tidb_username
+DB_PASSWORD=your_tidb_password
+DB_NAME=onlygeneric
+DB_SSL=true
+DB_SSL_CA=/etc/ssl/certs/ca-certificates.crt
+DB_SSL_REJECT_UNAUTHORIZED=true
+PORT=8080
+JWT_SECRET=your_random_jwt_secret_here
+```
+
+**2. CA Certificate Location**
+
+Render's Linux containers include standard CA certificates at `/etc/ssl/certs/ca-certificates.crt` by default. No need to upload it separately.
+
+If TiDB provides a custom CA certificate:
+- Download the `.pem` file from TiDB Cloud
+- Upload it to your Render project
+- Update `DB_SSL_CA` to point to the uploaded path
+
+**3. Run Database Migration**
+
+After deploying, connect to your Render shell and run:
+
+```bash
+mysql -h gateway01.xxx.tidbcloud.com -P 4000 -u user -p --ssl-mode=REQUIRED onlygeneric < schema.sql
+```
+
+Or use TiDB Cloud's web SQL editor to paste and run `schema.sql`.
+
+**4. Seed Admin User**
+
+```bash
+npm run seed
+```
+
+### Local Development with TiDB
+
+To test TiDB locally before deployment, update your `.env`:
+
+```dotenv
+DB_HOST=gateway01.your-region.prod.aws.tidbcloud.com
+DB_PORT=4000
+DB_USER=your_username
+DB_PASSWORD=your_password
+DB_NAME=onlygeneric
+DB_SSL=true
+DB_SSL_CA=/etc/ssl/certs/ca-certificates.crt
+```
+
+---
+
 ## Troubleshooting
 
 | Issue | Fix |

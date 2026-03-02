@@ -16,15 +16,30 @@ const PORT       = process.env.PORT       || 8080;
 const JWT_SECRET = process.env.JWT_SECRET || 'onlygeneric_super_secret_jwt_key_change_me';
 
 // ─── Database Pool ────────────────────────────────────────────────────────────
-const pool = mysql.createPool({
+const poolConfig = {
   host:             process.env.DB_HOST     || 'localhost',
+  port:             parseInt(process.env.DB_PORT || '3306', 10),
   user:             process.env.DB_USER     || 'root',
   password:         process.env.DB_PASSWORD || '',
   database:         process.env.DB_NAME     || 'onlygeneric',
   waitForConnections: true,
   connectionLimit:  10,
   timezone:         '+00:00',
-});
+};
+
+// Add SSL configuration for TiDB or other cloud databases
+if (process.env.DB_SSL === 'true') {
+  poolConfig.ssl = {
+    rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false',
+  };
+  // If a specific CA certificate path is provided, use it
+  if (process.env.DB_SSL_CA) {
+    const fs = require('fs');
+    poolConfig.ssl.ca = fs.readFileSync(process.env.DB_SSL_CA, 'utf8');
+  }
+}
+
+const pool = mysql.createPool(poolConfig);
 
 // ─── Auth Middleware ──────────────────────────────────────────────────────────
 function authMiddleware(req, res, next) {
