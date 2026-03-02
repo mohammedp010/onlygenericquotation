@@ -22,6 +22,7 @@
       --teal:      #00acc1;
       --teal-lt:   #e0f7fa;
       --green:     #2e7d32;
+      --green-dk:  #1b5e20;
       --green-lt:  #e8f5e9;
       --red:       #c62828;
       --text:      #1e2d3d;
@@ -204,7 +205,7 @@
     .app-content {
       flex: 1;
       padding: 28px 24px 48px;
-      max-width: 1100px;
+      max-width: 1300px;
       width: 100%;
       margin: 0 auto;
     }
@@ -270,18 +271,47 @@
       border-color: var(--red);
     }
 
+    /* ═══════════════════════════════════════════════════════
+       TWO-PANEL TABLES LAYOUT
+    ═══════════════════════════════════════════════════════ */
+    .tables-outer-container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .med-panel {
+      flex: 1;
+      min-width: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    }
+    .panel-header {
+      padding: 10px 14px;
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: #fff;
+    }
+    .prescribed-panel .panel-header {
+      background: var(--blue);
+    }
+    .generic-panel .panel-header {
+      background: var(--green-dk);
+    }
+
     /* TABLE WRAPPER */
     .table-wrapper { overflow-x: auto; }
 
     table.med-table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 780px;
+      min-width: 340px;
     }
-    /* All thead cells baseline */
     table.med-table thead th {
-      padding: 9px 12px;
-      font-size: .76rem;
+      padding: 9px 10px;
+      font-size: .74rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: .5px;
@@ -289,42 +319,30 @@
       text-align: left;
       color: #fff;
     }
-    /* ── Group header row ─────────────────────── */
-    .th-sno {
-      background: var(--blue-dk);
-      text-align: center;
-      vertical-align: middle;
-      width: 42px;
-      border-radius: 8px 0 0 0;
-      border-right: 1px solid rgba(255,255,255,.25);
+    .prescribed-panel table.med-table thead th {
+      background: #1e80c5;
+      color: #fff;
     }
-    .th-grp { text-align: center; letter-spacing: 1px; font-size: .72rem; padding: 7px 10px; }
-    .th-prescribed { background: var(--blue);   border-right: 3px solid rgba(255,255,255,.35); }
-    .th-generic    { background: var(--green);  border-right: 3px solid rgba(255,255,255,.35); }
-    .th-savings    { background: #1b5e20; text-align: center; vertical-align: middle; }
-    .th-action     { background: #546e7a; text-align: center; vertical-align: middle;
-                     border-radius: 0 8px 0 0; width: 52px; }
-    /* ── Sub-header row ──────────────────────── */
-    .th-sub-row th {
-      background: #dceefb;
-      color: var(--blue-dk);
-      font-size: .74rem;
-      padding: 6px 12px;
-      border-top: 1px solid rgba(26,111,175,.2);
-      font-weight: 700;
+    .generic-panel table.med-table thead th {
+      background: #388e3c;
+      color: #fff;
     }
-    .th-sub-row .sub-generic { background: #d6f0de; color: var(--green); }
-    /* Group dividers in body */
-    table.med-table td:nth-child(3) { border-right: 2px solid rgba(26,111,175,.18); }
-    table.med-table td:nth-child(5) { border-right: 2px solid rgba(46,125,50,.18); }
+    .th-sno    { text-align: center !important; width: 38px; }
+    .th-qty    { text-align: center !important; width: 58px; }
+    .th-price  { text-align: right !important; }
+    .th-total  { text-align: right !important; }
+    .th-savings{ text-align: right !important; background: var(--green-dk) !important; }
+    .th-action { text-align: center !important; width: 52px; background: #546e7a !important; }
 
     table.med-table tbody tr { transition: background .15s; }
     table.med-table tbody tr:nth-child(even) { background: var(--blue-lt); }
+    .generic-panel table.med-table tbody tr:nth-child(even) { background: var(--green-lt); }
     table.med-table tbody tr:nth-child(odd)  { background: var(--white); }
     table.med-table tbody tr:hover { background: #daeeff; }
+    .generic-panel table.med-table tbody tr:hover { background: #c8e6c9; }
 
     table.med-table td {
-      padding: 8px 10px;
+      padding: 7px 9px;
       vertical-align: middle;
       border-bottom: 1px solid var(--border);
     }
@@ -334,10 +352,10 @@
     /* inputs inside table */
     .tc-input {
       width: 100%;
-      padding: 8px 10px;
+      padding: 7px 9px;
       border: 1.5px solid var(--border);
       border-radius: 6px;
-      font-size: .9rem;
+      font-size: .88rem;
       color: var(--text);
       outline: none;
       background: var(--white);
@@ -348,6 +366,8 @@
       box-shadow: 0 0 0 3px rgba(0,172,193,.12);
     }
     .tc-input.price-input { text-align: right; }
+    .tc-input.qty-input   { text-align: center; width: 56px; }
+
     /* Generic price input in green */
     .generic-price {
       color: var(--green) !important;
@@ -356,16 +376,28 @@
     }
     .generic-price:focus { box-shadow: 0 0 0 3px rgba(46,125,50,.15) !important; border-color: var(--green) !important; }
 
+    /* Total display badge inside table */
+    .total-badge {
+      display: inline-block;
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--blue-dk);
+      white-space: nowrap;
+      min-width: 60px;
+      text-align: right;
+    }
+    .gen-total-badge { color: var(--green); }
+
     .savings-badge {
       display: inline-block;
       background: var(--green-lt);
       color: var(--green);
-      font-size: .85rem;
+      font-size: .83rem;
       font-weight: 700;
-      padding: 4px 10px;
+      padding: 4px 8px;
       border-radius: 6px;
       white-space: nowrap;
-      min-width: 70px;
+      min-width: 62px;
       text-align: right;
     }
 
@@ -375,7 +407,7 @@
       border: none;
       cursor: pointer;
       color: #e53935;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       line-height: 1;
       padding: 4px 6px;
       border-radius: 5px;
@@ -407,11 +439,13 @@
       background: var(--white);
       border: 1.5px solid var(--blue);
       border-radius: 8px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.14);
+      box-shadow: 0 8px 24px rgba(0,0,0,.18);
       z-index: 9999;
       max-height: 220px;
       overflow-y: auto;
       display: none;
+      /* Prevent overflow on small screens */
+      max-width: calc(100vw - 16px);
     }
     .ac-dropdown.open { display: block; }
     .ac-item {
@@ -424,8 +458,8 @@
     }
     .ac-item:hover, .ac-item.focused { background: var(--blue-lt); }
     .ac-item:not(:last-child) { border-bottom: 1px solid var(--border); }
-    .ac-item .ac-generic { font-size: .92rem; font-weight: 600; color: var(--text); }
-    .ac-item .ac-price   { font-size: .78rem; color: var(--teal); font-weight: 600; }
+    .ac-item .ac-generic { font-size: .9rem; font-weight: 600; color: var(--text); }
+    .ac-item .ac-price   { font-size: .76rem; color: var(--teal); font-weight: 600; }
 
     /* SUMMARY BAR */
     .summary-bar {
@@ -514,15 +548,29 @@
     .toast.success { background: var(--green); }
     .toast.error   { background: var(--red); }
 
-    /* ═══ RESPONSIVE ═════════════════════════════════════════ */
+    /* ═══ RESPONSIVE ════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      /* Stack the two medicine panels vertically on tablet/mobile */
+      .tables-outer-container {
+        flex-direction: column;
+        gap: 16px;
+      }
+      .med-panel { width: 100%; }
+    }
+
     @media (max-width: 640px) {
-      .app-content { padding: 16px 12px 40px; }
-      .card { padding: 18px 14px; }
-      .app-header { padding: 12px 16px; }
-      .app-header .hdr-left .hdr-logo { height: 30px; }
-      .app-header .hdr-left .hdr-text .brand { font-size: 1.2rem; }
-      .btn-logout { padding: 7px 14px; font-size: .8rem; }
-      .login-card { padding: 36px 22px 28px; }
+      .app-content { padding: 14px 10px 36px; }
+      .card { padding: 16px 12px; }
+      .app-header { padding: 10px 14px; }
+      .app-header .hdr-left .hdr-logo { height: 28px; }
+      .app-header .hdr-left .hdr-text .brand { font-size: 1.1rem; }
+      .btn-logout { padding: 7px 12px; font-size: .8rem; }
+      .login-card { padding: 36px 20px 28px; }
+      /* Tighter table cells on mobile */
+      table.med-table td, table.med-table thead th { padding: 6px 7px; font-size: .78rem; }
+      .tc-input { padding: 6px 7px; font-size: .82rem; }
+      .tc-input.qty-input { width: 48px; }
+      .savings-badge { min-width: 54px; font-size: .78rem; }
     }
   </style>
 </head>
@@ -599,31 +647,55 @@
       </div>
     </div>
 
-    <!-- ── Medicine Table ────────────────────────── -->
+    <!-- ── Medicine Tables (side by side) ────────── -->
     <div class="card">
       <div class="card-title">Prescribed vs Generic Medicine</div>
-      <div class="table-wrapper">
-        <table class="med-table" id="med-table">
-          <thead>
-            <tr class="th-group-row">
-              <th rowspan="2" class="th-sno">#</th>
-              <th colspan="2" class="th-grp th-prescribed">&#128138; Prescribed</th>
-              <th colspan="2" class="th-grp th-generic">&#9989; Generic</th>
-              <th rowspan="2" class="th-grp th-savings">Savings (&#8377;)</th>
-              <th rowspan="2" class="th-grp th-action">Action</th>
-            </tr>
-            <tr class="th-sub-row">
-              <th>Medicine Name</th>
-              <th>Price (&#8377;)</th>
-              <th class="sub-generic">Medicine Name</th>
-              <th class="sub-generic">Price (&#8377;)</th>
-            </tr>
-          </thead>
-          <tbody id="med-tbody">
-            <!-- rows injected by JS -->
-          </tbody>
-        </table>
-      </div>
+      <div class="tables-outer-container">
+
+        <!-- ── Prescribed Panel ── -->
+        <div class="med-panel prescribed-panel">
+          <div class="panel-header">&#128138; Your Prescribed medicine</div>
+          <div class="table-wrapper">
+            <table class="med-table" id="presc-table">
+              <thead>
+                <tr>
+                  <th class="th-sno">#</th>
+                  <th class="th-qty">QTY</th>
+                  <th>Medicine Name</th>
+                  <th class="th-price">Unit Price (&#8377;)</th>
+                  <th class="th-total">Total (&#8377;)</th>
+                </tr>
+              </thead>
+              <tbody id="presc-tbody">
+                <!-- rows injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── Generic Panel ── -->
+        <div class="med-panel generic-panel">
+          <div class="panel-header">&#9989; OnlyGeneric medicine</div>
+          <div class="table-wrapper">
+            <table class="med-table" id="gen-table">
+              <thead>
+                <tr>
+                  <th class="th-qty">QTY</th>
+                  <th>Medicine Name</th>
+                  <th class="th-price">Unit Price (&#8377;)</th>
+                  <th class="th-total">Total (&#8377;)</th>
+                  <th class="th-savings">Savings (&#8377;)</th>
+                  <th class="th-action">Del</th>
+                </tr>
+              </thead>
+              <tbody id="gen-tbody">
+                <!-- rows injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /.tables-outer-container -->
       <button class="btn-add-row" id="btn-add-row">+ Add Row</button>
     </div>
 
@@ -770,7 +842,8 @@ $('btn-logout').addEventListener('click', () => {
 ───────────────────────────────────────────────────────── */
 function initApp() {
   $('f-date').value = new Date().toISOString().split('T')[0];
-  $('med-tbody').innerHTML = '';
+  $('presc-tbody').innerHTML = '';
+  $('gen-tbody').innerHTML   = '';
   rowCounter = 0;
   addRow();
   updateSummary();
@@ -822,9 +895,15 @@ function initMobileAutocomplete() {
 
   function posCustDropdown() {
     const rect = mobileInput.getBoundingClientRect();
-    dropdown.style.left  = rect.left  + 'px';
-    dropdown.style.top   = (rect.bottom + 3) + 'px';
-    dropdown.style.width = rect.width + 'px';
+    const dropW = Math.min(Math.max(rect.width, 220), window.innerWidth - 16);
+    let left = rect.left;
+    if (left + dropW > window.innerWidth - 8) left = window.innerWidth - dropW - 8;
+    if (left < 8) left = 8;
+    const maxH = Math.min(220, window.innerHeight - rect.bottom - 10);
+    dropdown.style.left      = left + 'px';
+    dropdown.style.top       = (rect.bottom + 3) + 'px';
+    dropdown.style.width     = dropW + 'px';
+    dropdown.style.maxHeight = Math.max(80, maxH) + 'px';
   }
 
   function renderCustDropdown(items) {
@@ -885,13 +964,18 @@ $('btn-add-row').addEventListener('click', addRow);
 
 function addRow() {
   rowCounter++;
-  const idx  = rowCounter;
-  const tbody = $('med-tbody');
+  const idx       = rowCounter;
+  const prescTbody = $('presc-tbody');
+  const genTbody   = $('gen-tbody');
+  const rowNum     = prescTbody.children.length + 1;
 
-  const tr = document.createElement('tr');
-  tr.dataset.rowId = idx;
-  tr.innerHTML = `
-    <td class="num-cell">${tbody.children.length + 1}</td>
+  /* ── Prescribed row ── */
+  const prescTr = document.createElement('tr');
+  prescTr.dataset.rowId = idx;
+  prescTr.innerHTML = `
+    <td class="num-cell">${rowNum}</td>
+    <td><input class="tc-input qty-input presc-qty" type="number" min="1" step="1" value="1"
+               inputmode="numeric" data-row="${idx}" /></td>
     <td>
       <div class="autocomplete-wrap">
         <input class="tc-input prescribed-input"
@@ -903,62 +987,74 @@ function addRow() {
     </td>
     <td><input class="tc-input price-input prescribed-price" type="number" min="0" step="0.01"
                placeholder="0.00" data-row="${idx}" /></td>
+    <td style="text-align:right;"><span class="total-badge" id="presc-total-${idx}">₹0.00</span></td>`;
+  prescTbody.appendChild(prescTr);
+
+  /* ── Generic row ── */
+  const genTr = document.createElement('tr');
+  genTr.dataset.rowId = idx;
+  genTr.innerHTML = `
+    <td><input class="tc-input qty-input gen-qty" type="number" min="1" step="1" value="1"
+               inputmode="numeric" data-row="${idx}" /></td>
     <td><input class="tc-input generic-input" type="text"
                placeholder="e.g. Paracetamol 500mg" data-row="${idx}" /></td>
     <td><input class="tc-input price-input generic-price" type="number" min="0" step="0.01"
                placeholder="0.00" data-row="${idx}" /></td>
+    <td style="text-align:right;"><span class="total-badge gen-total-badge" id="gen-total-${idx}">₹0.00</span></td>
     <td><span class="savings-badge" id="savings-${idx}">₹0.00</span></td>
     <td class="action-cell">
       <button class="btn-del-row" title="Remove row" data-row="${idx}">&#128465;</button>
     </td>`;
+  genTbody.appendChild(genTr);
 
-  tbody.appendChild(tr);
   renumberRows();
-  bindRowEvents(tr, idx);
+  bindRowEvents(prescTr, genTr, idx);
 }
 
 function deleteRow(rowId) {
-  const tr = document.querySelector(`tr[data-row-id="${rowId}"]`);
-  if (tr) tr.remove();
+  const prescTr = document.querySelector(`#presc-tbody tr[data-row-id="${rowId}"]`);
+  const genTr   = document.querySelector(`#gen-tbody tr[data-row-id="${rowId}"]`);
+  if (prescTr) prescTr.remove();
+  if (genTr)   genTr.remove();
   renumberRows();
   updateSummary();
 }
 
 function renumberRows() {
-  document.querySelectorAll('#med-tbody tr').forEach((tr, i) => {
+  document.querySelectorAll('#presc-tbody tr').forEach((tr, i) => {
     tr.querySelector('.num-cell').textContent = i + 1;
   });
 }
 
 /* ─────────────────────────────────────────────────────────
-   ROW EVENTS — SAVINGS + AUTOCOMPLETE
+   ROW EVENTS — QTY, SAVINGS + AUTOCOMPLETE
 ───────────────────────────────────────────────────────── */
-function bindRowEvents(tr, idx) {
-  const prescribedInput = tr.querySelector('.prescribed-input');
-  const prescribedPrice = tr.querySelector('.prescribed-price');
-  const genericInput    = tr.querySelector('.generic-input');
-  const genericPrice    = tr.querySelector('.generic-price');
-  const delBtn          = tr.querySelector('.btn-del-row');
+function bindRowEvents(prescTr, genTr, idx) {
+  const prescQty        = prescTr.querySelector('.presc-qty');
+  const prescribedInput = prescTr.querySelector('.prescribed-input');
+  const prescribedPrice = prescTr.querySelector('.prescribed-price');
+  const genQty          = genTr.querySelector('.gen-qty');
+  const genericInput    = genTr.querySelector('.generic-input');
+  const genericPrice    = genTr.querySelector('.generic-price');
+  const delBtn          = genTr.querySelector('.btn-del-row');
   const dropdown        = $(`ac-drop-${idx}`);
 
-  // Savings update on price change
-  prescribedPrice.addEventListener('input', () => {
-    updateRowSavings(idx);
-    updateSummary();
-  });
-  genericPrice.addEventListener('input', () => {
-    updateRowSavings(idx);
-    updateSummary();
+  /* Price / QTY change → recalculate */
+  [prescQty, prescribedPrice, genQty, genericPrice].forEach(el => {
+    el.addEventListener('input', () => {
+      updateRowSavings(idx);
+      updateSummary();
+    });
   });
 
-  // Delete row — also clean up window listeners added by this row
+  /* Delete row */
   delBtn.addEventListener('click', () => {
     window.removeEventListener('scroll', prescribedInput._reposition, true);
     window.removeEventListener('resize', prescribedInput._reposition);
     deleteRow(idx);
   });
 
-  // ── Autocomplete ──────────────────────────────────────
+  /* ── Autocomplete ──────────────────────────────────────── */
   let debounceTimer = null;
   let acItems       = [];
   let focusedIdx    = -1;
@@ -977,7 +1073,6 @@ function bindRowEvents(tr, idx) {
   });
 
   prescribedInput.addEventListener('blur', () => {
-    // small delay so click events on dropdown items fire first
     setTimeout(closeDropdown, 160);
   });
 
@@ -993,9 +1088,15 @@ function bindRowEvents(tr, idx) {
 
   function positionDropdown() {
     const rect = prescribedInput.getBoundingClientRect();
-    dropdown.style.left  = rect.left + 'px';
-    dropdown.style.top   = (rect.bottom + 3) + 'px';
-    dropdown.style.width = rect.width + 'px';
+    const dropW = Math.min(Math.max(rect.width, 260), window.innerWidth - 16);
+    let left = rect.left;
+    if (left + dropW > window.innerWidth - 8) left = window.innerWidth - dropW - 8;
+    if (left < 8) left = 8;
+    const maxH = Math.min(220, window.innerHeight - rect.bottom - 10);
+    dropdown.style.left      = left + 'px';
+    dropdown.style.top       = (rect.bottom + 3) + 'px';
+    dropdown.style.width     = dropW + 'px';
+    dropdown.style.maxHeight = Math.max(80, maxH) + 'px';
   }
 
   function renderDropdown(items) {
@@ -1024,7 +1125,7 @@ function bindRowEvents(tr, idx) {
     dropdown.classList.add('open');
   }
 
-  // Keep dropdown aligned when user scrolls or resizes
+  /* Keep dropdown aligned when user scrolls or resizes */
   prescribedInput._reposition = () => { if (dropdown.classList.contains('open')) positionDropdown(); };
   window.addEventListener('scroll', prescribedInput._reposition, true);
   window.addEventListener('resize', prescribedInput._reposition);
@@ -1047,10 +1148,11 @@ function bindRowEvents(tr, idx) {
     const item = acItems[i];
     if (!item) return;
     prescribedInput.value = item.prescribed_name;
+    /* ── BUG FIX: fill prescribed price from suggestion ── */
+    prescribedPrice.value = Number(item.prescribed_price || 0).toFixed(2);
     genericInput.value    = item.generic_name;
     genericPrice.value    = Number(item.generic_price).toFixed(2);
     closeDropdown();
-    prescribedPrice.focus();
     updateRowSavings(idx);
     updateSummary();
   }
@@ -1063,14 +1165,30 @@ function bindRowEvents(tr, idx) {
   }
 }
 
+/* ─────────────────────────────────────────────────────────
+   SAVINGS & TOTALS PER ROW
+───────────────────────────────────────────────────────── */
 function updateRowSavings(idx) {
-  const row   = document.querySelector(`tr[data-row-id="${idx}"]`);
-  if (!row) return;
-  const pp    = parseFloat(row.querySelector('.prescribed-price').value) || 0;
-  const gp    = parseFloat(row.querySelector('.generic-price').value)    || 0;
-  const saved = Math.max(0, pp - gp);
-  const el    = $(`savings-${idx}`);
-  if (el) el.textContent = '₹' + saved.toFixed(2);
+  const prescTr = document.querySelector(`#presc-tbody tr[data-row-id="${idx}"]`);
+  const genTr   = document.querySelector(`#gen-tbody tr[data-row-id="${idx}"]`);
+  if (!prescTr || !genTr) return;
+
+  const pQty = Math.max(1, parseInt(prescTr.querySelector('.presc-qty').value) || 1);
+  const gQty = Math.max(1, parseInt(genTr.querySelector('.gen-qty').value)     || 1);
+  const pp   = parseFloat(prescTr.querySelector('.prescribed-price').value)    || 0;
+  const gp   = parseFloat(genTr.querySelector('.generic-price').value)         || 0;
+
+  const prescTotal = pQty * pp;
+  const genTotal   = gQty * gp;
+  const saved      = Math.max(0, prescTotal - genTotal);
+
+  const ptEl = $(`presc-total-${idx}`);
+  const gtEl = $(`gen-total-${idx}`);
+  const sEl  = $(`savings-${idx}`);
+
+  if (ptEl) ptEl.textContent = fmt(prescTotal);
+  if (gtEl) gtEl.textContent = fmt(genTotal);
+  if (sEl)  sEl.textContent  = fmt(saved);
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -1079,13 +1197,21 @@ function updateRowSavings(idx) {
 function updateSummary() {
   let totalP = 0, totalG = 0;
 
-  document.querySelectorAll('#med-tbody tr').forEach(tr => {
-    const pp = parseFloat(tr.querySelector('.prescribed-price').value) || 0;
-    const gp = parseFloat(tr.querySelector('.generic-price').value)    || 0;
-    totalP += pp;
-    totalG += gp;
-    const rowId = tr.dataset.rowId;
-    updateRowSavings(rowId);
+  document.querySelectorAll('#presc-tbody tr').forEach(tr => {
+    const qty   = Math.max(1, parseInt(tr.querySelector('.presc-qty').value) || 1);
+    const price = parseFloat(tr.querySelector('.prescribed-price').value)    || 0;
+    totalP += qty * price;
+  });
+
+  document.querySelectorAll('#gen-tbody tr').forEach(tr => {
+    const qty   = Math.max(1, parseInt(tr.querySelector('.gen-qty').value) || 1);
+    const price = parseFloat(tr.querySelector('.generic-price').value)     || 0;
+    totalG += qty * price;
+  });
+
+  /* Refresh each row's savings badge */
+  document.querySelectorAll('#presc-tbody tr').forEach(tr => {
+    updateRowSavings(tr.dataset.rowId);
   });
 
   const saved = Math.max(0, totalP - totalG);
@@ -1105,12 +1231,13 @@ function updateSummary() {
 }
 
 function resetForm() {
-  $('f-mobile').value = '';
+  $('f-mobile').value   = '';
   $('f-customer').value = '';
-  $('f-doctor').value = '';
-  $('f-date').value = new Date().toISOString().split('T')[0];
-  $('med-tbody').innerHTML = '';
-  rowIdCounter = 1;
+  $('f-doctor').value   = '';
+  $('f-date').value     = new Date().toISOString().split('T')[0];
+  $('presc-tbody').innerHTML = '';
+  $('gen-tbody').innerHTML   = '';
+  rowCounter = 0;
   addRow();
   updateSummary();
 }
@@ -1121,7 +1248,7 @@ function resetForm() {
 $('btn-generate').addEventListener('click', handleGenerate);
 
 async function handleGenerate() {
-  // ── 1. Validate ──────────────────────────────────────
+  /* ── 1. Validate ── */
   const mobile = $('f-mobile').value.trim();
   if (!/^\d{10}$/.test(mobile)) {
     $('f-mobile').classList.add('invalid');
@@ -1151,7 +1278,7 @@ async function handleGenerate() {
   btn.textContent = '⏳ Generating…';
 
   try {
-    // ── 2. Save mappings + customer ──────────────────
+    /* ── 2. Save mappings + customer ── */
     const mappings = rows
       .filter(r => r.prescribedName && r.genericName)
       .map(r => ({
@@ -1166,10 +1293,10 @@ async function handleGenerate() {
       customer: { mobile, customer_name: customerName },
     });
 
-    // ── 3. Get quotation number ───────────────────────
+    /* ── 3. Get quotation number ── */
     const { number: quotationNumber } = await api('GET', '/api/quotation-number');
 
-    // ── 4. Generate PDF ───────────────────────────────
+    /* ── 4. Generate PDF ── */
     await generatePDF({
       mobile,
       customerName,
@@ -1192,14 +1319,20 @@ async function handleGenerate() {
 
 function collectRows() {
   const result = [];
-  document.querySelectorAll('#med-tbody tr').forEach(tr => {
+  document.querySelectorAll('#presc-tbody tr').forEach(tr => {
+    const idx    = tr.dataset.rowId;
+    const genTr  = document.querySelector(`#gen-tbody tr[data-row-id="${idx}"]`);
+    const pQty   = Math.max(1, parseInt(tr.querySelector('.presc-qty').value) || 1);
     const pName  = tr.querySelector('.prescribed-input').value.trim();
     const pPrice = parseFloat(tr.querySelector('.prescribed-price').value) || 0;
-    const gName  = tr.querySelector('.generic-input').value.trim();
-    const gPrice = parseFloat(tr.querySelector('.generic-price').value) || 0;
+    const gQty   = genTr ? Math.max(1, parseInt(genTr.querySelector('.gen-qty').value) || 1) : 1;
+    const gName  = genTr ? genTr.querySelector('.generic-input').value.trim() : '';
+    const gPrice = genTr ? (parseFloat(genTr.querySelector('.generic-price').value) || 0) : 0;
     if (pName || gName) {
-      result.push({ prescribedName: pName, prescribedPrice: pPrice,
-                    genericName: gName, genericPrice: gPrice });
+      result.push({
+        prescribedName:  pName,  prescribedQty:   pQty,  prescribedPrice: pPrice,
+        genericName:     gName,  genericQty:      gQty,  genericPrice:    gPrice,
+      });
     }
   });
   return result;
@@ -1209,7 +1342,6 @@ function collectRows() {
    PDF GENERATION (jsPDF + AutoTable)
 ───────────────────────────────────────────────────────── */
 
-// Helper: load an image URL → PNG data URL via canvas
 function loadLogoDataURL(src) {
   return new Promise(resolve => {
     const img = new Image();
@@ -1231,52 +1363,46 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
-  const MARGIN  = 14;
-  const PW      = 210 - MARGIN * 2;   // 182 mm printable width
-  const BLUE    = [26, 111, 175];
-  const TEAL    = [0, 172, 193];
-  const DKBLUE  = [20, 90, 144];
-  const GREEN   = [46, 125, 50];
-  const WHITE   = [255, 255, 255];
-  const LTBLUE  = [232, 244, 253];
-  const LTGRAY  = [245, 247, 250];
-  const GRAY    = [80, 100, 120];
+  const MARGIN = 14;
+  const PW     = 210 - MARGIN * 2;   // 182 mm printable width
+  const BLUE   = [26, 111, 175];
+  const TEAL   = [0, 172, 193];
+  const DKBLUE = [20, 90, 144];
+  const GREEN  = [46, 125, 50];
+  const DKGREEN= [27, 94, 32];
+  const WHITE  = [255, 255, 255];
+  const LTBLUE = [232, 244, 253];
+  const LTGREEN= [232, 245, 233];
+  const LTGRAY = [245, 247, 250];
+  const GRAY   = [80, 100, 120];
 
-  // Use Rs. instead of ₹ — jsPDF built-in fonts lack the rupee glyph
   const RS = 'Rs.';
-
   let y = MARGIN;
 
-  // ── Header band ──────────────────────────────────────
+  /* ── Header band ── */
   const HDR_H = 32;
   doc.setFillColor(...DKBLUE);
   doc.rect(0, 0, 210, HDR_H, 'F');
 
-  // Try to place logo image
   const logo = await loadLogoDataURL('assets/onlygeneric.webp');
   let textStartX = MARGIN;
   if (logo) {
-    const logoH = 22;  // height in mm inside the header
+    const logoH = 22;
     const logoW = logoH * (logo.w / logo.h);
     const logoY = (HDR_H - logoH) / 2;
     doc.addImage(logo.dataURL, 'PNG', MARGIN, logoY, logoW, logoH);
     textStartX = MARGIN + logoW + 5;
   } else {
-    // Fallback text brand
     doc.setTextColor(...WHITE);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(20);
     doc.text('OnlyGeneric', MARGIN, 14);
-    textStartX = MARGIN;
   }
 
-  // Tagline below logo (or beside it if no logo)
   doc.setTextColor(...WHITE);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   if (logo) {
-    // Only show tagline centered under white text area if logo fits left side.
-    // Place tagline under the logo area
     const logoH = 22;
     const logoW = logoH * (logo.w / logo.h);
     doc.text('Genuine Generics, Genuine Savings', MARGIN + logoW / 2, (HDR_H - 22) / 2 + 22 + 4, { align: 'center' });
@@ -1284,7 +1410,6 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
     doc.text('Genuine Generics, Genuine Savings', MARGIN, 21);
   }
 
-  // Shop info (right-aligned)
   doc.setFontSize(7.5);
   const shopLines = [
     'Shop No. 1/2, Narayan Krupa Appartment,',
@@ -1299,7 +1424,7 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
 
   y = HDR_H + 4;
 
-  // ── Quotation title ───────────────────────────────────
+  /* ── Quotation title ── */
   doc.setFillColor(...LTBLUE);
   doc.rect(MARGIN, y, PW, 10, 'F');
   doc.setTextColor(...BLUE);
@@ -1311,8 +1436,7 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
   doc.text(`Quotation No: ${quotationNumber}`, MARGIN + 3, y + 12.5);
   y += 18;
 
-  // ── Customer Details Box ──────────────────────────────
-  const detailsStartY = y;
+  /* ── Customer Details Box ── */
   doc.setDrawColor(...BLUE);
   doc.setLineWidth(0.4);
 
@@ -1345,19 +1469,29 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
   });
   y += 4;
 
-  // ── Medicine Table ────────────────────────────────────
-  // Column widths (total = 182mm): #8 + Presc46 + PP30 + Gen44 + GP28 + Sav26
+  /* ── Medicine Table ──
+     Columns (total 182mm):
+     # (7) | QTY (9) | Presc Name (32) | Presc Price (18) | Presc Total (18)
+           | QTY (9) | Gen Name (29)   | Gen Price (17)   | Gen Total (17) | Savings (26)
+  */
   let totalP = 0, totalG = 0;
+
   const tableBody = rows.map((r, i) => {
-    const savings = Math.max(0, r.prescribedPrice - r.genericPrice);
-    totalP += r.prescribedPrice;
-    totalG += r.genericPrice;
+    const prescTotal = r.prescribedQty * r.prescribedPrice;
+    const genTotal   = r.genericQty   * r.genericPrice;
+    const savings    = Math.max(0, prescTotal - genTotal);
+    totalP += prescTotal;
+    totalG += genTotal;
     return [
       i + 1,
-      r.prescribedName || '—',
+      r.prescribedQty,
+      r.prescribedName  || '—',
       r.prescribedPrice > 0 ? RS + r.prescribedPrice.toFixed(2) : '—',
+      prescTotal        > 0 ? RS + prescTotal.toFixed(2)        : '—',
+      r.genericQty,
       r.genericName     || '—',
       r.genericPrice    > 0 ? RS + r.genericPrice.toFixed(2)    : '—',
+      genTotal          > 0 ? RS + genTotal.toFixed(2)          : '—',
       savings           > 0 ? RS + savings.toFixed(2)           : '—',
     ];
   });
@@ -1368,22 +1502,26 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
     tableWidth: PW,
     head: [
       [
-        { content: '#',           rowSpan: 2, styles: { valign: 'middle', halign: 'center', fillColor: DKBLUE } },
-        { content: 'PRESCRIBED',  colSpan: 2, styles: { halign: 'center', fillColor: BLUE } },
-        { content: 'GENERIC',     colSpan: 2, styles: { halign: 'center', fillColor: GREEN } },
-        { content: 'SAVINGS (Rs.)', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [27,94,32] } },
+        { content: '#',            rowSpan: 2, styles: { valign: 'middle', halign: 'center', fillColor: DKBLUE } },
+        { content: 'PRESCRIBED',   colSpan: 4, styles: { halign: 'center', fillColor: BLUE } },
+        { content: 'GENERIC',      colSpan: 4, styles: { halign: 'center', fillColor: DKGREEN } },
+        { content: 'SAVINGS',      rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [10,60,15] } },
       ],
       [
-        { content: 'Medicine',    styles: { fillColor: [200,225,248], textColor: DKBLUE } },
-        { content: 'Price (Rs.)', styles: { halign: 'right', fillColor: [200,225,248], textColor: DKBLUE } },
-        { content: 'Medicine',    styles: { fillColor: [200,235,210], textColor: GREEN } },
-        { content: 'Price (Rs.)', styles: { halign: 'right', fillColor: [200,235,210], textColor: GREEN } },
+        { content: 'QTY',          styles: { halign: 'center', fillColor: [200,225,248], textColor: DKBLUE } },
+        { content: 'Medicine',     styles: { fillColor: [200,225,248], textColor: DKBLUE } },
+        { content: 'Unit Price',   styles: { halign: 'right', fillColor: [200,225,248], textColor: DKBLUE } },
+        { content: 'Total',        styles: { halign: 'right', fillColor: [200,225,248], textColor: DKBLUE } },
+        { content: 'QTY',          styles: { halign: 'center', fillColor: [200,235,210], textColor: DKGREEN } },
+        { content: 'Medicine',     styles: { fillColor: [200,235,210], textColor: DKGREEN } },
+        { content: 'Unit Price',   styles: { halign: 'right', fillColor: [200,235,210], textColor: DKGREEN } },
+        { content: 'Total',        styles: { halign: 'right', fillColor: [200,235,210], textColor: DKGREEN } },
       ],
     ],
     body: tableBody,
     styles: {
-      fontSize: 8.5,
-      cellPadding: 3.5,
+      fontSize: 7.5,
+      cellPadding: 3,
       overflow: 'linebreak',
       textColor: [30, 45, 61],
       lineColor: [208, 221, 232],
@@ -1392,20 +1530,39 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
     headStyles: {
       textColor: WHITE,
       fontStyle: 'bold',
-      fontSize: 8,
+      fontSize: 7.5,
     },
     columnStyles: {
-      0: { halign: 'center', cellWidth: 8 },
-      1: { cellWidth: 46 },
-      2: { halign: 'right',  cellWidth: 30 },
-      3: { cellWidth: 44 },
-      4: { halign: 'right',  cellWidth: 28, textColor: GREEN, fontStyle: 'bold' },
-      5: { halign: 'right',  cellWidth: 26, textColor: GREEN, fontStyle: 'bold' },
+      0: { halign: 'center', cellWidth: 7 },
+      1: { halign: 'center', cellWidth: 9 },
+      2: { cellWidth: 32 },
+      3: { halign: 'right',  cellWidth: 18 },
+      4: { halign: 'right',  cellWidth: 18 },
+      5: { halign: 'center', cellWidth: 9 },
+      6: { cellWidth: 29 },
+      7: { halign: 'right',  cellWidth: 17 },
+      8: { halign: 'right',  cellWidth: 17 },
+      9: { halign: 'right',  cellWidth: 26, textColor: GREEN, fontStyle: 'bold' },
     },
     didParseCell(data) {
-      if (data.section === 'body' && (data.column.index === 4 || data.column.index === 5)) {
-        data.cell.styles.textColor  = GREEN;
-        data.cell.styles.fontStyle  = 'bold';
+      if (data.section === 'body') {
+        /* Green text for generic and savings columns */
+        if ([6,7,8,9].includes(data.column.index)) {
+          data.cell.styles.textColor = GREEN;
+          if ([7,8,9].includes(data.column.index)) data.cell.styles.fontStyle = 'bold';
+        }
+        /* Light teal background for prescribed section */
+        if ([1,2,3,4].includes(data.column.index)) {
+          data.cell.styles.fillColor = data.row.index % 2 === 0
+            ? [232, 244, 253]
+            : [255, 255, 255];
+        }
+        /* Light green background for generic section */
+        if ([5,6,7,8,9].includes(data.column.index)) {
+          data.cell.styles.fillColor = data.row.index % 2 === 0
+            ? [232, 245, 233]
+            : [255, 255, 255];
+        }
       }
     },
     alternateRowStyles: { fillColor: LTBLUE },
@@ -1415,7 +1572,7 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
 
   y = doc.lastAutoTable.finalY + 8;
 
-  // ── Summary Box ────────────────────────────────────────
+  /* ── Summary Box ── */
   const totalSaved = Math.max(0, totalP - totalG);
   const pct        = totalP > 0 ? (totalSaved / totalP * 100).toFixed(1) : '0.0';
 
@@ -1463,8 +1620,8 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
 
   y = doc.lastAutoTable.finalY + 14;
 
-  // ── Footer ────────────────────────────────────────────
-  const PAGE_H = 297;
+  /* ── Footer ── */
+  const PAGE_H  = 297;
   const footerY = Math.max(y, PAGE_H - 22);
 
   doc.setFillColor(...DKBLUE);
@@ -1475,15 +1632,13 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
   doc.setFontSize(8);
   doc.text(
     'All generic medicines are certified and approved. Thank you for choosing OnlyGeneric.',
-    105,
-    footerY + 7,
-    { align: 'center' }
+    105, footerY + 7, { align: 'center' }
   );
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.text('OnlyGeneric · support@onlygeneric.in · +91 95377 12330', 105, footerY + 13, { align: 'center' });
 
-  // ── Download ──────────────────────────────────────────
+  /* ── Download ── */
   const fileName = `${quotationNumber}_${mobile}.pdf`;
   doc.save(fileName);
 }
@@ -1506,13 +1661,11 @@ function escHtml(str) {
     .replace(/"/g,'&quot;');
 }
 
-// Mobile field: only allow digits (autocomplete logic handled in initMobileAutocomplete)
+/* Mobile field: only allow digits */
 $('f-mobile').addEventListener('input', function() {
   this.value = this.value.replace(/\D/g, '').slice(0, 10);
   this.classList.remove('invalid');
 });
-// Note: customer autocomplete + keydown/blur are registered by initMobileAutocomplete()
-// which is called from initApp() on login/session restore.
 </script>
 </body>
 </html>
