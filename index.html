@@ -172,8 +172,8 @@
 
     /* HEADER */
     .app-header {
-      background: linear-gradient(90deg, var(--blue-dk) 0%, var(--blue) 60%, var(--teal) 100%);
-      color: #fff;
+      background: var(--white);
+      color: var(--text);
       padding: 14px 28px;
       display: flex;
       align-items: center;
@@ -186,11 +186,11 @@
     }
     .app-header .hdr-left { display: flex; align-items: center; gap: 12px; }
     .app-header .hdr-left .hdr-logo { height: 38px; width: auto; }
-    .app-header .hdr-left .hdr-text .brand { font-size: 1.5rem; font-weight: 800; letter-spacing: -.5px; }
-    .app-header .hdr-left .hdr-text .tagline { font-size: .78rem; opacity: .82; letter-spacing: .4px; }
+    .app-header .hdr-left .hdr-text .brand { font-size: 1.5rem; font-weight: 800; letter-spacing: -.5px; color: var(--blue); }
+    .app-header .hdr-left .hdr-text .tagline { font-size: .78rem; opacity: .82; letter-spacing: .4px; color: var(--text-mute); }
     .btn-logout {
-      background: rgba(255,255,255,.15);
-      border: 1.5px solid rgba(255,255,255,.5);
+      background: var(--blue);
+      border: 1.5px solid var(--blue);
       color: #fff;
       padding: 8px 20px;
       border-radius: 8px;
@@ -199,7 +199,7 @@
       cursor: pointer;
       transition: background .2s;
     }
-    .btn-logout:hover { background: rgba(255,255,255,.28); }
+    .btn-logout:hover { background: var(--blue-dk); }
 
     /* MAIN CONTENT */
     .app-content {
@@ -633,8 +633,8 @@
           </div>
         </div>
         <div class="field-wrap">
-          <label>Customer Name <span class="req">*</span></label>
-          <input type="text" id="f-customer" placeholder="Required" />
+          <label>Customer Name</label>
+          <input type="text" id="f-customer" placeholder="Optional" />
         </div>
         <div class="field-wrap">
           <label>Doctor Name</label>
@@ -705,7 +705,7 @@
         <div class="sum-label">Total Prescribed (₹)</div>
         <div class="sum-value" id="sum-prescribed">₹0.00</div>
       </div>
-      <div class="sum-tile">
+      <div class="sum-tile savings-tile">
         <div class="sum-label">Total Generic (₹)</div>
         <div class="sum-value" id="sum-generic">₹0.00</div>
       </div>
@@ -1259,13 +1259,6 @@ async function handleGenerate() {
   $('f-mobile').classList.remove('invalid');
 
   const customerName = $('f-customer').value.trim();
-  if (!customerName) {
-    $('f-customer').classList.add('invalid');
-    $('f-customer').focus();
-    showToast('Please enter the Customer Name.', 'error');
-    return;
-  }
-  $('f-customer').classList.remove('invalid');
 
   const rows = collectRows();
   if (!rows.length) {
@@ -1381,7 +1374,7 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
 
   /* ── Header band ── */
   const HDR_H = 32;
-  doc.setFillColor(...DKBLUE);
+  doc.setFillColor(...WHITE);
   doc.rect(0, 0, 210, HDR_H, 'F');
 
   const logo = await loadLogoDataURL('assets/onlygeneric.webp');
@@ -1393,13 +1386,13 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
     doc.addImage(logo.dataURL, 'PNG', MARGIN, logoY, logoW, logoH);
     textStartX = MARGIN + logoW + 5;
   } else {
-    doc.setTextColor(...WHITE);
+    doc.setTextColor(...DKBLUE);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(20);
     doc.text('OnlyGeneric', MARGIN, 14);
   }
 
-  doc.setTextColor(...WHITE);
+  doc.setTextColor(...GRAY);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   if (logo) {
@@ -1503,8 +1496,8 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
     head: [
       [
         { content: '#',            rowSpan: 2, styles: { valign: 'middle', halign: 'center', fillColor: DKBLUE } },
-        { content: 'PRESCRIBED',   colSpan: 4, styles: { halign: 'center', fillColor: BLUE } },
-        { content: 'GENERIC',      colSpan: 4, styles: { halign: 'center', fillColor: DKGREEN } },
+        { content: 'Your Prescribed medicine',   colSpan: 4, styles: { halign: 'center', fillColor: BLUE } },
+        { content: 'OnlyGeneric medicine',      colSpan: 4, styles: { halign: 'center', fillColor: DKGREEN } },
         { content: 'SAVINGS',      rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [10,60,15] } },
       ],
       [
@@ -1597,7 +1590,7 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
       1: { halign: 'right',   fontStyle: 'bold', textColor: [30, 45, 61] },
     },
     didParseCell(data) {
-      if (data.row.index === 2 || data.row.index === 3) {
+      if (data.row.index === 1 || data.row.index === 2 || data.row.index === 3) {
         data.cell.styles.textColor = GREEN;
         data.cell.styles.fillColor = [232, 245, 233];
         data.cell.styles.fontStyle = 'bold';
