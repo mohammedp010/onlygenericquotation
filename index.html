@@ -1462,108 +1462,147 @@ async function generatePDF({ mobile, customerName, doctorName, date, quotationNu
   });
   y += 4;
 
-  /* ── Medicine Table ──
-     Columns (total 182mm):
-     # (7) | QTY (9) | Presc Name (32) | Presc Price (18) | Presc Total (18)
-           | QTY (9) | Gen Name (29)   | Gen Price (17)   | Gen Total (17) | Savings (26)
-  */
+  /* ── Medicine Tables (2 separate tables) ── */
   let totalP = 0, totalG = 0;
 
-  const tableBody = rows.map((r, i) => {
+  const prescBody = [];
+  const genBody   = [];
+
+  rows.forEach((r, i) => {
     const prescTotal = r.prescribedQty * r.prescribedPrice;
     const genTotal   = r.genericQty   * r.genericPrice;
     const savings    = Math.max(0, prescTotal - genTotal);
     totalP += prescTotal;
     totalG += genTotal;
-    return [
+
+    prescBody.push([
       i + 1,
       r.prescribedQty,
       r.prescribedName  || '—',
       r.prescribedPrice > 0 ? RS + r.prescribedPrice.toFixed(2) : '—',
       prescTotal        > 0 ? RS + prescTotal.toFixed(2)        : '—',
+    ]);
+
+    genBody.push([
+      i + 1,
       r.genericQty,
       r.genericName     || '—',
       r.genericPrice    > 0 ? RS + r.genericPrice.toFixed(2)    : '—',
       genTotal          > 0 ? RS + genTotal.toFixed(2)          : '—',
       savings           > 0 ? RS + savings.toFixed(2)           : '—',
-    ];
+    ]);
   });
 
+  /* ── Tables side-by-side: left = Prescribed, right = Generic ──
+     Page 210mm, MARGIN 14mm each side → PW 182mm
+     Gap between tables: 4mm
+     Each half: (182 - 4) / 2 = 89mm
+     Left:  margin.left=14,  margin.right=107  → occupies x:14–103
+     Right: margin.left=107, margin.right=14   → occupies x:107–196
+  */
+  const tableStartY  = y;
+  const LEFT_RIGHT   = 210 - MARGIN - 89;   // = 107
+  const RIGHT_LEFT   = MARGIN + 89 + 4;     // = 107   (same value, gap=4)
+
+  /* ── Table 1 (LEFT): Your Prescribed Medicine ── */
   doc.autoTable({
-    startY: y,
-    margin: { left: MARGIN, right: MARGIN },
-    tableWidth: PW,
+    startY: tableStartY,
+    margin: { left: MARGIN, right: LEFT_RIGHT },
     head: [
       [
-        { content: '#',            rowSpan: 2, styles: { valign: 'middle', halign: 'center', fillColor: DKBLUE } },
-        { content: 'Your Prescribed medicine',   colSpan: 4, styles: { halign: 'center', fillColor: BLUE } },
-        { content: 'OnlyGeneric medicine',      colSpan: 4, styles: { halign: 'center', fillColor: DKGREEN } },
-        { content: 'SAVINGS',      rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [10,60,15] } },
+        { content: 'Your Prescribed Medicine', colSpan: 5, styles: { halign: 'center', fillColor: BLUE } },
       ],
       [
-        { content: 'QTY',          styles: { halign: 'center', fillColor: [200,225,248], textColor: DKBLUE } },
-        { content: 'Medicine',     styles: { fillColor: [200,225,248], textColor: DKBLUE } },
-        { content: 'Unit Price',   styles: { halign: 'right', fillColor: [200,225,248], textColor: DKBLUE } },
-        { content: 'Total',        styles: { halign: 'right', fillColor: [200,225,248], textColor: DKBLUE } },
-        { content: 'QTY',          styles: { halign: 'center', fillColor: [200,235,210], textColor: DKGREEN } },
-        { content: 'Medicine',     styles: { fillColor: [200,235,210], textColor: DKGREEN } },
-        { content: 'Unit Price',   styles: { halign: 'right', fillColor: [200,235,210], textColor: DKGREEN } },
-        { content: 'Total',        styles: { halign: 'right', fillColor: [200,235,210], textColor: DKGREEN } },
+        { content: '#',          styles: { halign: 'center', valign: 'middle', fillColor: DKBLUE } },
+        { content: 'QTY',        styles: { halign: 'center', fillColor: [200,225,248], textColor: DKBLUE } },
+        { content: 'Medicine',   styles: { fillColor: [200,225,248], textColor: DKBLUE } },
+        { content: 'Unit Price', styles: { halign: 'right',  fillColor: [200,225,248], textColor: DKBLUE } },
+        { content: 'Total',      styles: { halign: 'right',  fillColor: [200,225,248], textColor: DKBLUE } },
       ],
     ],
-    body: tableBody,
+    body: prescBody,
     styles: {
-      fontSize: 7.5,
+      fontSize: 8,
       cellPadding: 3,
       overflow: 'linebreak',
       textColor: [30, 45, 61],
       lineColor: [208, 221, 232],
       lineWidth: 0.3,
     },
-    headStyles: {
-      textColor: WHITE,
-      fontStyle: 'bold',
-      fontSize: 7.5,
-    },
+    headStyles: { textColor: WHITE, fontStyle: 'bold', fontSize: 8 },
     columnStyles: {
-      0: { halign: 'center', cellWidth: 7 },
-      1: { halign: 'center', cellWidth: 9 },
-      2: { cellWidth: 32 },
-      3: { halign: 'right',  cellWidth: 18 },
-      4: { halign: 'right',  cellWidth: 18 },
-      5: { halign: 'center', cellWidth: 9 },
-      6: { cellWidth: 29 },
-      7: { halign: 'right',  cellWidth: 17 },
-      8: { halign: 'right',  cellWidth: 17 },
-      9: { halign: 'right',  cellWidth: 26, textColor: GREEN, fontStyle: 'bold' },
+      0: { halign: 'center', cellWidth: 8  },
+      1: { halign: 'center', cellWidth: 12 },
+      2: { cellWidth: 43 },
+      3: { halign: 'right',  cellWidth: 13 },
+      4: { halign: 'right',  cellWidth: 13 },
     },
     didParseCell(data) {
       if (data.section === 'body') {
-        /* Green text for generic and savings columns */
-        if ([6,7,8,9].includes(data.column.index)) {
-          data.cell.styles.textColor = GREEN;
-          if ([7,8,9].includes(data.column.index)) data.cell.styles.fontStyle = 'bold';
-        }
-        /* Light teal background for prescribed section */
-        if ([1,2,3,4].includes(data.column.index)) {
-          data.cell.styles.fillColor = data.row.index % 2 === 0
-            ? [232, 244, 253]
-            : [255, 255, 255];
-        }
-        /* Light green background for generic section */
-        if ([5,6,7,8,9].includes(data.column.index)) {
-          data.cell.styles.fillColor = data.row.index % 2 === 0
-            ? [232, 245, 233]
-            : [255, 255, 255];
-        }
+        data.cell.styles.fillColor = data.row.index % 2 === 0
+          ? [232, 244, 253] : [255, 255, 255];
       }
     },
-    alternateRowStyles: { fillColor: LTBLUE },
     tableLineColor: BLUE,
     tableLineWidth: 0.3,
   });
+  const prescFinalY = doc.lastAutoTable.finalY;
 
-  y = doc.lastAutoTable.finalY + 8;
+  /* ── Table 2 (RIGHT): OnlyGeneric Medicine ── */
+  doc.autoTable({
+    startY: tableStartY,
+    margin: { left: RIGHT_LEFT, right: MARGIN },
+    head: [
+      [
+        { content: 'OnlyGeneric Medicine ✅', colSpan: 5, styles: { halign: 'center', fillColor: DKGREEN } },
+        { content: 'SAVINGS', rowSpan: 2, styles: { halign: 'center', valign: 'middle', fillColor: [10,60,15] } },
+      ],
+      [
+        { content: '#',          styles: { halign: 'center', valign: 'middle', fillColor: [27,94,32] } },
+        { content: 'QTY',        styles: { halign: 'center', fillColor: [200,235,210], textColor: DKGREEN } },
+        { content: 'Medicine',   styles: { fillColor: [200,235,210], textColor: DKGREEN } },
+        { content: 'Unit Price', styles: { halign: 'right',  fillColor: [200,235,210], textColor: DKGREEN } },
+        { content: 'Total',      styles: { halign: 'right',  fillColor: [200,235,210], textColor: DKGREEN } },
+      ],
+    ],
+    body: genBody,
+    styles: {
+      fontSize: 8,
+      cellPadding: 3,
+      overflow: 'linebreak',
+      textColor: [30, 45, 61],
+      lineColor: [200, 230, 205],
+      lineWidth: 0.3,
+    },
+    headStyles: { textColor: WHITE, fontStyle: 'bold', fontSize: 8 },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 8  },
+      1: { halign: 'center', cellWidth: 12 },
+      2: { cellWidth: 31 },
+      3: { halign: 'right',  cellWidth: 13 },
+      4: { halign: 'right',  cellWidth: 13 },
+      5: { halign: 'right',  cellWidth: 12, textColor: GREEN, fontStyle: 'bold' },
+    },
+    didParseCell(data) {
+      if (data.section === 'body') {
+        if (data.column.index === 5) {
+          data.cell.styles.textColor  = GREEN;
+          data.cell.styles.fontStyle  = 'bold';
+          data.cell.styles.fillColor  = data.row.index % 2 === 0
+            ? [220, 245, 220] : [255, 255, 255];
+        } else {
+          data.cell.styles.fillColor  = data.row.index % 2 === 0
+            ? [232, 245, 233] : [255, 255, 255];
+          data.cell.styles.textColor  = GREEN;
+        }
+      }
+    },
+    tableLineColor: DKGREEN,
+    tableLineWidth: 0.3,
+  });
+  const genFinalY = doc.lastAutoTable.finalY;
+
+  y = Math.max(prescFinalY, genFinalY) + 8;
 
   /* ── Summary Box ── */
   const totalSaved = Math.max(0, totalP - totalG);
